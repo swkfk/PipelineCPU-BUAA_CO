@@ -286,7 +286,7 @@ module mips(
         .Sel(RegWriteSrc$W),
         .DI_00(AO$W),
         .DI_01(DR$W),
-        .DI_10(PC4$W),
+        .DI_10(PC8$W),
         .DO(WD$_W)
     );
 
