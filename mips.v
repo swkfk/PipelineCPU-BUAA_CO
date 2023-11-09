@@ -123,11 +123,11 @@ module mips(
     wire [4:0]  RegRA1, RegRA2, RegWA;
     
     /*** vvv Forward: D Stage vvv ***/
-    assign RegRD1$FWD = (RegRA1 == A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
-                        (RegRA1 == A3$W && RegWriteEn$W) ? WD$_W :
+    assign RegRD1$FWD = (RegRA1 == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
+                        (RegRA1 == A3$W && A3$W && RegWriteEn$W) ? WD$_W :
                         RegRD1;
-    assign RegRD2$FWD = (RegRA2 == A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
-                        (RegRA2 == A3$W && RegWriteEn$W) ? WD$_W :
+    assign RegRD2$FWD = (RegRA2 == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
+                        (RegRA2 == A3$W && A3$W && RegWriteEn$W) ? WD$_W :
                         RegRD2;
     /*** ^^^ Forward: D Stage ^^^ ***/
     
@@ -186,11 +186,11 @@ module mips(
     
     /*** vvv Forward: E Stage vvv ***/
     wire [31:0] V1$E$FWD, V2$E$FWD;
-    assign V1$E$FWD = (A1$E == A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
-                      (A1$E == A3$W && RegWriteEn$W) ? WD$_W :
+    assign V1$E$FWD = (A1$E == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
+                      (A1$E == A3$W && A3$W && RegWriteEn$W) ? WD$_W :
                       V1$E;
-    assign V2$E$FWD = (A2$E == A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
-                      (A2$E == A3$W && RegWriteEn$W) ? WD$_W :
+    assign V2$E$FWD = (A2$E == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
+                      (A2$E == A3$W && A3$W && RegWriteEn$W) ? WD$_W :
                       V2$E;
     /*** ^^^ Forward: E Stage ^^^ ***/
     
