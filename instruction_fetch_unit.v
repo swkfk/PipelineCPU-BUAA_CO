@@ -11,6 +11,7 @@ module IFU(
     input branch,
     output [31:0] PC,
     output [31:0] PC4,
+    output [31:0] PC8,
     output [31:0] Instr,
     input En
     );
@@ -29,11 +30,12 @@ module IFU(
     
     assign PC = PC_R;
     assign PC4 = PC + 32'h4;
+    assign PC8 = PC + 32'h8;
 
     MUX32_4 u_mux_32_4(
         .Sel(npcOp),
         .DI_00(PC4),
-        .DI_01(branch ? PC4 + {{14{imm16[15]}}, imm16, 2'b00} : PC4),
+        .DI_01(branch ? PC + {{14{imm16[15]}}, imm16, 2'b00} : PC4),
         .DI_10({PC[31:28], imm26, 2'b00}),
         .DI_11(regData),
         .DO(NPC)
