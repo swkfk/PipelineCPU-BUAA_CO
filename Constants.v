@@ -36,4 +36,8 @@
 `define ALU_LUI 3'b011
 `define ALU_SLL 3'b100
 
+`define IR_RD 15:11
+`define IR_RT 20:16
+`define IR_RS 25:21
+
 `endif
