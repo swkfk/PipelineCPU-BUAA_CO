@@ -239,17 +239,18 @@ module mips(
     PReg #(.Width(2)) u_type$M (clk, Stall$W, Clear$W, type$E, type$M);
     /*** ^^^ M Stage Registers ^^^ ***/
     
-    wire [31:0] DmAddr, DmRD, DmWD;
+    wire [31:0] DmAddr, DmRD, DmWD, DmWD$FWD;
 
     assign DmAddr = AO$M;
     assign DmWD = V2$M;
    
+    assign DmWD$FWD = (A2$M == A3$W && A3$W && RegWriteEn$W) ? WD$_W : DmWD;
     
     DM u_dm(
         .clk(clk),
         .reset(reset),
         .WAddr(DmAddr),
-        .WData(DmWD),
+        .WData(DmWD$FWD),
         .WrEn(DmWriteEn$M),
         .RD(DmRD),
         .PC4(PC4$M)

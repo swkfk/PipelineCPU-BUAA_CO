@@ -35,7 +35,7 @@ module GRF(
         end
     end
     
-    assign RD1 = REG[A1];
-    assign RD2 = REG[A2];
+    assign RD1 = (A1 == A3 && A3 && WrEn) ? WD : REG[A1];
+    assign RD2 = (A2 == A3 && A3 && WrEn) ? WD : REG[A2];
 
 endmodule
