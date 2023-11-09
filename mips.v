@@ -5,29 +5,45 @@ module mips(
     input clk,
     input reset
     );
+    
+    wire stall;
+    
+    StallCtrl u_stall(
+        .Type$E(type$E),
+        .Type$M(type$M),
+        .A1$D(RegRA1),
+        .A2$D(RegRA2),
+        .A3$E(A3$E),
+        .A3$M(A3$M),
+        .WE$E(RegWriteEn$E),
+        .WE$M(RegWriteEn$M),
+        .TuseRS(TuseRS),
+        .TuseRT(TuseRT),
+        .stall(stall)
+    );
 
     wire [31:0] instruction;
     wire [31:0] pc, pc4;
-    
-    wire [31:0] DmAddr, DmRD, DmWD;
     
     IFU u_ifu(
         .clk(clk),
         .reset(reset),
         .npcOp(NpcSel),
-        .imm16(imm16),
-        .imm26(imm26),
-        .regData(RegRD1),
-        .zero(AluZero),
+        .imm16(imm16),  // imm16 @D
+        .imm26(imm26),  // imm26 @D
+        .regData(RegRD1$FWD),  // RD1 @D
+        .branch(b_jump),  // branch @D
         .PC(pc),
         .PC4(pc4),
-        .Instr(instruction)
+        .Instr(instruction),
+        .En(!stall)
     );
-    
+
     /*** vvv D Stage Registers vvv ***/
     wire [31:0] instruction$D;
     wire [31:0] PC4$D;
-    wire Stall$D, Clear$D;
+    wire Stall$D = stall;
+    wire Clear$D = reset;
     
     PReg u_instr$D (clk, Stall$D, Clear$D, instruction, instruction$D);
     PReg u_PC4$D   (clk, Stall$D, Clear$D, pc4, PC4$D);
@@ -38,6 +54,9 @@ module mips(
     wire [15:0] imm16;
     wire [25:0] imm26;
     
+    wire [1:0] type;
+    wire [2:0] TuseRS, TuseRT;
+    
     wire RegWriteEn, DmWriteEn, AluASel, AluBSel, ExtOp;
     wire [2:0]  AluOp;
     wire [1:0]  RegWriteSrc, RegWriteSel, NpcSel;
@@ -46,13 +65,15 @@ module mips(
         .Instr(instruction$D),
         .opCode(opcode),
         .func(func),
-        .rd(rd),
-        .rt(rt),
-        .rs(rs),
+        .rd_15_11(rd),
+        .rt_20_16(rt),
+        .rs_25_21(rs),
         .shamt(shamt),
         .imm16(imm16),
         .imm26(imm26)
     );
+     
+    wire [2:0] BrType;
     
     Controller u_ctrl(
         .opCode(opcode),
@@ -65,15 +86,11 @@ module mips(
         .AluOp(AluOp),
         .ExtOp(ExtOp),
         .DmWriteEn(DmWriteEn),
-        .NpcSel(NpcSel)
-    );
-    
-    MUX32_4 u_mux_regwrite_src(
-        .Sel(RegWriteSrc),
-        .DI_00(AluC),
-        .DI_01(DmRD),
-        .DI_10(pc4),
-        .DO(RegWD)
+        .NpcSel(NpcSel),
+        .BType(BrType),
+        .InstrType(type),
+        .TuseRS(TuseRS),
+        .TuseRT(TuseRT)
     );
     
     wire [31:0] ext32, shamt32;
@@ -101,61 +118,100 @@ module mips(
         .DO(RegWA)
     );
     
-    wire [31:0] RegRD1, RegRD2, RegWD;
+    wire [31:0] RegRD1, RegRD2;
+    wire [31:0] RegRD1$FWD, RegRD2$FWD;
     wire [4:0]  RegRA1, RegRA2, RegWA;
+    
+    /*** vvv Forward: D Stage vvv ***/
+    assign RegRD1$FWD = (RegRA1 == A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
+                        (RegRA1 == A3$W && RegWriteEn$W) ? WD$_W :
+                        RegRD1;
+    assign RegRD2$FWD = (RegRA2 == A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
+                        (RegRA2 == A3$W && RegWriteEn$W) ? WD$_W :
+                        RegRD2;
+    /*** ^^^ Forward: D Stage ^^^ ***/
     
     GRF u_grf(
         .clk(clk),
         .reset(reset),
         .A1(RegRA1),
         .A2(RegRA2),
-        .A3(RegWA),
-        .WD(RegWD),
-        .WrEn(RegWriteEn),
+        .A3(A3$W),  // Write back
+        .WD(WD$_W),  // Write back
+        .WrEn(RegWriteEn$W),  // Write back
         .RD1(RegRD1),
         .RD2(RegRD2),
-        .PC(pc)
+        .PC4(PC4$W)
     );
+    
+    wire b_jump;
+    
+    CMP u_cmp (.RD1(RegRD1$FWD), .RD2(RegRD2$FWD), .BType(BrType), .b_jump(b_jump));
     
     /*** vvv E Stage Registers vvv ***/
     wire [31:0] V1$E, V2$E, E32$E, S32$E;  // S32: Shamt 32
-    wire [4:0]  A2$E, A3$E;
+    wire [4:0]  A1$E, A2$E, A3$E;
     wire [31:0] PC4$E;
+    
+    wire AluASel$E, AluBSel$E, DmWriteEn$E;
+    wire [2:0] AluOp$E;
+    wire [1:0] RegWriteSrc$E;
     // wire [15:0] I16$E;
     
-    wire Stall$E, Clear$E;
+    wire [1:0] type$E;
     
-    PReg u_v1$E  (clk, Stall$E, Clear$E, RegRD1, V1$E);
-    PReg u_v2$E  (clk, Stall$E, Clear$E, RegRD2, V2$E);
+    wire Stall$E = 1'b0;
+    wire Clear$E = stall || reset;
+    
+    PReg u_v1$E  (clk, Stall$E, Clear$E, RegRD1$FWD, V1$E);
+    PReg u_v2$E  (clk, Stall$E, Clear$E, RegRD2$FWD, V2$E);
     PReg u_e32$E (clk, Stall$E, Clear$E, ext32, E32$E);
     PReg u_s32$E (clk, Stall$E, Clear$E, shamt32, S32$E);
+    PReg #(.Width(5)) u_a1$E (clk, Stall$E, Clear$E, RegRA1, A1$E);
     PReg #(.Width(5)) u_a2$E (clk, Stall$E, Clear$E, RegRA2, A2$E);
     PReg #(.Width(5)) u_a3$E (clk, Stall$E, Clear$E, RegWA, A3$E);
     PReg u_pc4$E (clk, Stall$E, Clear$E, PC4$D, PC4$E);
     // PReg #(.Width(16)) u_i16$E (clk, Stall$E, Clear$E, imm16, I16$E);
+    PReg #(.Width(1)) u_aluasel$E (clk, Stall$E, Clear$E, AluASel, AluASel$E);
+    PReg #(.Width(1)) u_alubsel$E (clk, Stall$E, Clear$E, AluBSel, AluBSel$E);
+    PReg #(.Width(3)) u_aluop$E   (clk, Stall$E, Clear$E, AluOp, AluOp$E);
+    PReg #(.Width(1)) u_dmwe$E (clk, Stall$E, Clear$E, DmWriteEn, DmWriteEn$E);
+    PReg #(.Width(1)) u_rfwe$E (clk, Stall$E, Clear$E, RegWriteEn, RegWriteEn$E);
+    PReg #(.Width(2)) u_rfws$E (clk, Stall$W, Clear$W, RegWriteSrc, RegWriteSrc$E);
+    PReg #(.Width(2)) u_type$E (clk, Stall$W, Clear$W, type, type$E);
     /*** ^^^ E Stage Registers ^^^ ***/
 
     wire        AluZero;
     wire [31:0] AluA, AluB, AluC;
     
+    /*** vvv Forward: E Stage vvv ***/
+    wire [31:0] V1$E$FWD, V2$E$FWD;
+    assign V1$E$FWD = (A1$E == A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
+                      (A1$E == A3$W && RegWriteEn$W) ? WD$_W :
+                      V1$E;
+    assign V2$E$FWD = (A2$E == A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
+                      (A2$E == A3$W && RegWriteEn$W) ? WD$_W :
+                      V2$E;
+    /*** ^^^ Forward: E Stage ^^^ ***/
+    
     MUX32_2 u_mux_alu_a(
-        .Sel(AluASel),
-        .DI_0(RegRD1),
-        .DI_1(shamt32),
+        .Sel(AluASel$E),
+        .DI_0(V1$E$FWD),
+        .DI_1(S32$E),
         .DO(AluA)
     );
     
     MUX32_2 u_mux_alu_b(
-        .Sel(AluBSel),
-        .DI_0(RegRD2),
-        .DI_1(ext32),
+        .Sel(AluBSel$E),
+        .DI_0(V2$E$FWD),
+        .DI_1(E32$E),
         .DO(AluB)
     );
     
     ALU u_alu(
         .A(AluA),
         .B(AluB),
-        .AluOp(AluOp),
+        .AluOp(AluOp$E),
         .C(AluC),
         .Zero(AluZero)
     );
@@ -165,26 +221,38 @@ module mips(
     wire [4:0]  A3$M, A2$M;
     wire [31:0] PC4$M;
     
-    wire Stall$M, Clear$M;
+    wire DmWriteEn$M, RegWriteEn$M;
+    wire [1:0] RegWriteSrc$M;
+    wire [1:0] type$M;
+    
+    wire Stall$M = 1'b0;
+    wire Clear$M = reset;
     
     PReg u_ao$M (clk, Stall$M, Clear$M, AluC, AO$M);
     PReg #(.Width(5)) u_a3$M (clk, Stall$M, Clear$M, A3$E, A3$M);
     PReg u_v2$M (clk, Stall$M, Clear$M, V2$E, V2$M);
     PReg #(.Width(5)) u_a2$M (clk, Stall$M, Clear$M, A2$E, A2$M);
     PReg u_pc4$M (clk, Stall$M, Clear$M, PC4$E, PC4$M);
+    PReg #(.Width(1)) u_dmwe$M (clk, Stall$M, Clear$M, DmWriteEn$E, DmWriteEn$M);
+    PReg #(.Width(1)) u_rfwe$M (clk, Stall$M, Clear$M, RegWriteEn$E, RegWriteEn$M);
+    PReg #(.Width(2)) u_rfws$M (clk, Stall$M, Clear$M, RegWriteSrc$E, RegWriteSrc$M);
+    PReg #(.Width(2)) u_type$M (clk, Stall$W, Clear$W, type$E, type$M);
     /*** ^^^ M Stage Registers ^^^ ***/
     
-    assign DmAddr = AluC;
-    assign DmWD = RegRD2;
+    wire [31:0] DmAddr, DmRD, DmWD;
+
+    assign DmAddr = AO$M;
+    assign DmWD = V2$M;
+   
     
     DM u_dm(
         .clk(clk),
         .reset(reset),
         .WAddr(DmAddr),
         .WData(DmWD),
-        .WrEn(DmWriteEn),
+        .WrEn(DmWriteEn$M),
         .RD(DmRD),
-        .PC(pc)
+        .PC4(PC4$M)
     );
     
     /*** vvv W Stage Registers vvv ***/
@@ -192,12 +260,28 @@ module mips(
     wire [4:0]  A3$W;
     wire [31:0] PC4$W;
     
-    wire Stall$W, Clear$W;
+    wire Stall$W = 1'b0;
+    wire Clear$W = reset;
+    
+    wire RegWriteEn$W;
+    wire [1:0] RegWriteSrc$W;
     
     PReg u_ao$W  (clk, Stall$W, Clear$W, AO$M, AO$W);
-    PReg #(.Width(5)) u_a3$W (clk, STall$W, Clear$W, A3$M, A3$W);
+    PReg #(.Width(5)) u_a3$W (clk, Stall$W, Clear$W, A3$M, A3$W);
     PReg u_dr$W  (clk, Stall$W, Clear$W, DmRD, DR$W);
     PReg u_pc4$W (clk, Stall$W, Clear$W, PC4$M, PC4$W);
+    PReg #(.Width(1)) u_rfwe$W (clk, Stall$W, Clear$W, RegWriteEn$M, RegWriteEn$W);
+    PReg #(.Width(2)) u_rfws$W (clk, Stall$W, Clear$W, RegWriteSrc$M, RegWriteSrc$W);
     /*** ^^^ W Stage Registers ^^^ ***/
+
+    wire [31:0] WD$_W;
+
+    MUX32_4 u_mux_regwrite_src(
+        .Sel(RegWriteSrc$W),
+        .DI_00(AO$W),
+        .DI_01(DR$W),
+        .DI_10(PC4$W),
+        .DO(WD$_W)
+    );
 
 endmodule

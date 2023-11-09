@@ -12,7 +12,11 @@ module Controller(
     output [2:0] AluOp,
     output ExtOp,
     output DmWriteEn,
-    output [1:0] NpcSel
+    output [1:0] NpcSel,
+    output [2:0] BType,
+    output [1:0] InstrType,
+    output [2:0] TuseRS,
+    output [2:0] TuseRT
     );
 
     wire add, sub, ori, lw, sw, beq, lui, jal, jr, sll;
@@ -30,6 +34,19 @@ module Controller(
     assign sw  = (opCode == `SW);
     assign jal = (opCode == `JAL);
     assign jr  = (special && func == `JR);
+
+    assign BType = beq ? `Br_BEQ : 3'b000;
+    assign InstrType = (add | sub | ori | lui | sll) ? `CalcType : 
+                       (lw) ? `LoadType :
+                       (beq | jr) ? `JumpType :
+                       2'b0;
+    assign TuseRS = (add | sub | ori | lui | lw | sw) ? 3'd1 :
+                    (beq | jr) ? 3'd0 :
+                    3'd3;
+    assign TuseRT = (add | sub | sll) ? 3'd1 :
+                    (beq) ? 3'd0 :
+                    (sw)  ? 3'd2 :
+                    3'd3;
 
     assign RegWriteEn = (add | sub | sll | ori | lw | jal | lui);
     assign RegWriteSrc[0] = lw;

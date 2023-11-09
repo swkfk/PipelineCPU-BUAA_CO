@@ -10,10 +10,11 @@ module GRF(
     input WrEn,
     output [31:0] RD1,
     output [31:0] RD2,
-    input [31:0] PC
+    input [31:0] PC4
     );
 
-    reg [31:0] REG[31:0];
+    reg  [31:0] REG[31:0];
+    wire [31:0] PC = PC4 - 32'd4;
     
     integer i;
     

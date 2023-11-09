@@ -7,10 +7,11 @@ module DM(
     input [31:0] WData,
     input WrEn,
     output [31:0] RD,
-    input [31:0] PC
+    input [31:0] PC4
     );
 
-    reg [31:0] DataMemory [3071:0];
+    reg  [31:0] DataMemory [3071:0];
+    wire [31:0] PC = PC4 - 32'd4;
     integer i;
     
     always @(posedge clk) begin

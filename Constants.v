@@ -40,4 +40,10 @@
 `define IR_RT 20:16
 `define IR_RS 25:21
 
+`define Br_BEQ  3'b001
+
+`define CalcType 2'b01
+`define LoadType 2'b10
+`define JumpType 2'b00
+
 `endif

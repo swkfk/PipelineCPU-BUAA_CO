@@ -6,18 +6,21 @@ module PReg
     input clk,
     input stall,
     input reset,
-    input [Width - 1 : 0] Din,
+    input  [Width - 1 : 0] Din,
     output [Width - 1 : 0] Dout
     );
     
+    reg [Width-1 : 0] R;
+    
     always @(posedge clk) begin
         if (reset)
-            Dout <= 32'b0;
+            R <= 32'b0;
         else if (~stall)
-            Dout <= Din;
+            R <= Din;
         else
-            Dout <= Dout;
+            R <= R;
     end
 
+    assign Dout = R;
 
 endmodule
