@@ -126,9 +126,11 @@ module mips(
     
     /*** vvv Forward: D Stage vvv ***/
     assign RegRD1$FWD = (RegRA1 == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
+                        (RegRA1 == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_PC4) ? PC8$M :
                         (RegRA1 == A3$W && A3$W && RegWriteEn$W) ? WD$_W :
                         RegRD1;
     assign RegRD2$FWD = (RegRA2 == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
+                        (RegRA2 == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_PC4) ? PC8$M :
                         (RegRA2 == A3$W && A3$W && RegWriteEn$W) ? WD$_W :
                         RegRD2;
     /*** ^^^ Forward: D Stage ^^^ ***/
