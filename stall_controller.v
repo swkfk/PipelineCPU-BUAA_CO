@@ -20,11 +20,11 @@ module StallCtrl(
                         3'd0;
     wire [2:0] Tnew$M = Type$M == `LoadType ? 3'd1 : 3'd0;
 
-    wire stall_rs$E = (TuseRS < Tnew$E) && (WE$E) && (A1$D == A3$E);
-    wire stall_rs$M = (TuseRS < Tnew$M) && (WE$M) && (A1$D == A3$M);
+    wire stall_rs$E = (TuseRS < Tnew$E) && (WE$E) && (A1$D == A3$E) && A3$E;
+    wire stall_rs$M = (TuseRS < Tnew$M) && (WE$M) && (A1$D == A3$M) && A3$M;
     
-    wire stall_rt$E = (TuseRT < Tnew$E) && (WE$E) && (A2$D == A3$E);
-    wire stall_rt$M = (TuseRT < Tnew$M) && (WE$M) && (A2$D == A3$M);
+    wire stall_rt$E = (TuseRT < Tnew$E) && (WE$E) && (A2$D == A3$E) && A3$E;
+    wire stall_rt$M = (TuseRT < Tnew$M) && (WE$M) && (A2$D == A3$M) && A3$M;
     
     assign stall = stall_rs$E | stall_rs$M | stall_rt$E | stall_rt$M;
 
