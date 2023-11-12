@@ -27,7 +27,7 @@ module GRF(
         else begin
             if (WrEn && A3 != 5'b0) begin
                 REG[A3] <= WD;
-                $display("@%h: $%d <= %h", PC, A3, WD);
+                $display("%d@%h: $%d <= %h", $time, PC, A3, WD);
             end
             else begin
                 REG[A3] <= REG[A3];

@@ -23,7 +23,7 @@ module DM(
         else begin
             if (WrEn) begin
                 DataMemory[WAddr[13:2]] <= WData;
-                $display("@%h: *%h <= %h", PC, WAddr, WData);
+                $display("%d@%h: *%h <= %h", $time, PC, WAddr, WData);
             end
             else begin
                 DataMemory[WAddr[13:2]] <= DataMemory[WAddr[13:2]];
