@@ -237,7 +237,7 @@ module mips(
     
     PReg u_ao$M (clk, Stall$M, Clear$M, AluC, AO$M);
     PReg #(.Width(5)) u_a3$M (clk, Stall$M, Clear$M, A3$E, A3$M);
-    PReg u_v2$M (clk, Stall$M, Clear$M, V2$E, V2$M);
+    PReg u_v2$M (clk, Stall$M, Clear$M, V2$E$FWD, V2$M);
     PReg #(.Width(5)) u_a2$M (clk, Stall$M, Clear$M, A2$E, A2$M);
     PReg u_pc4$M (clk, Stall$M, Clear$M, PC4$E, PC4$M);
     PReg u_pc8$M (clk, Stall$M, Clear$M, PC8$E, PC8$M);
