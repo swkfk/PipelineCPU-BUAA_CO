@@ -184,8 +184,8 @@ module mips(
     PReg #(.Width(3)) u_aluop$E   (clk, Stall$E, Clear$E, AluOp, AluOp$E);
     PReg #(.Width(1)) u_dmwe$E (clk, Stall$E, Clear$E, DmWriteEn, DmWriteEn$E);
     PReg #(.Width(1)) u_rfwe$E (clk, Stall$E, Clear$E, RegWriteEn, RegWriteEn$E);
-    PReg #(.Width(2)) u_rfws$E (clk, Stall$W, Clear$W, RegWriteSrc, RegWriteSrc$E);
-    PReg #(.Width(2)) u_type$E (clk, Stall$W, Clear$W, type, type$E);
+    PReg #(.Width(2)) u_rfws$E (clk, Stall$E, Clear$E, RegWriteSrc, RegWriteSrc$E);
+    PReg #(.Width(2)) u_type$E (clk, Stall$E, Clear$E, type, type$E);
     /*** ^^^ E Stage Registers ^^^ ***/
 
     wire        AluZero;
@@ -244,7 +244,7 @@ module mips(
     PReg #(.Width(1)) u_dmwe$M (clk, Stall$M, Clear$M, DmWriteEn$E, DmWriteEn$M);
     PReg #(.Width(1)) u_rfwe$M (clk, Stall$M, Clear$M, RegWriteEn$E, RegWriteEn$M);
     PReg #(.Width(2)) u_rfws$M (clk, Stall$M, Clear$M, RegWriteSrc$E, RegWriteSrc$M);
-    PReg #(.Width(2)) u_type$M (clk, Stall$W, Clear$W, type$E, type$M);
+    PReg #(.Width(2)) u_type$M (clk, Stall$M, Clear$M, type$E, type$M);
     /*** ^^^ M Stage Registers ^^^ ***/
     
     wire [31:0] DmAddr, DmRD, DmWD, DmWD$FWD;
