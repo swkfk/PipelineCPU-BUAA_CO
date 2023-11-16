@@ -9,7 +9,9 @@ module CMP(
     );
     
     wire eq = RD1 == RD2;
+    wire ne = !eq;
 
-    assign b_jump = BType == `Br_BEQ && eq;
+    assign b_jump = 
+        (BType == `Br_BEQ && eq) || (BType == `Br_BNE && ne);
 
 endmodule

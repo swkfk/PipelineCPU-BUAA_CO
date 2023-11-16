@@ -94,10 +94,10 @@ module Controller(
     assign AluBSel = (calc_ri | load | store | lui);
     assign ExtOp = (load | store | addi);
     assign DmWriteEn = store;
-    assign NpcSel[0] = (beq | jr);
+    assign NpcSel[0] = (bne | beq | jr);
     assign NpcSel[1] = (jal | jr);
 
-    assign AluOp[0] = (lui | beq | sub | _and | sltu | andi);
+    assign AluOp[0] = (lui | sub | _and | sltu | andi);
     assign AluOp[1] = (lui | ori | _or | slt | sltu);
     assign AluOp[2] = (sll | _and | slt | sltu | andi);
     assign AluOp[3] = 1'b0;
