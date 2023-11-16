@@ -71,7 +71,7 @@ module mips(
     wire [2:0] TuseRS, TuseRT;
     
     wire RegWriteEn, DmWriteEn, AluASel, AluBSel, ExtOp;
-    wire [2:0]  AluOp;
+    wire [3:0]  AluOp;
     wire [1:0]  RegWriteSrc, RegWriteSel, NpcSel;
     
     Decd u_decd(
@@ -175,7 +175,7 @@ module mips(
     wire [31:0] PC$E, PC8$E;
     
     wire AluASel$E, AluBSel$E, DmWriteEn$E;
-    wire [2:0] AluOp$E;
+    wire [3:0] AluOp$E;
     wire [1:0] RegWriteSrc$E;
     // wire [15:0] I16$E;
     
@@ -196,7 +196,7 @@ module mips(
     // PReg #(.Width(16)) u_i16$E (clk, Stall$E, Clear$E, imm16, I16$E);
     PReg #(.Width(1)) u_aluasel$E (clk, Stall$E, Clear$E, AluASel, AluASel$E);
     PReg #(.Width(1)) u_alubsel$E (clk, Stall$E, Clear$E, AluBSel, AluBSel$E);
-    PReg #(.Width(3)) u_aluop$E   (clk, Stall$E, Clear$E, AluOp, AluOp$E);
+    PReg #(.Width(4)) u_aluop$E   (clk, Stall$E, Clear$E, AluOp, AluOp$E);
     PReg #(.Width(1)) u_dmwe$E (clk, Stall$E, Clear$E, DmWriteEn, DmWriteEn$E);
     PReg #(.Width(1)) u_rfwe$E (clk, Stall$E, Clear$E, RegWriteEn, RegWriteEn$E);
     PReg #(.Width(2)) u_rfws$E (clk, Stall$E, Clear$E, RegWriteSrc, RegWriteSrc$E);

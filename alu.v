@@ -4,10 +4,12 @@
 module ALU(
     input [31:0] A,
     input [31:0] B,
-    input [2:0] AluOp,
+    input [3:0] AluOp,
     output [31:0] C,
     output Zero
     );
+
+    wire signed slt = $signed(A) < $signed(B) ? 1'b1 : 1'b0;
 
     assign C = 
         AluOp == `ALU_ADD ? A + B :
@@ -15,6 +17,9 @@ module ALU(
         AluOp == `ALU_OR  ? A | B :
         AluOp == `ALU_LUI ? B << 16 :
         AluOp == `ALU_SLL ? B << A[4:0] :
+        AluOp == `ALU_AND ? A & B :
+        AluOp == `ALU_SLT ? {31'b0, slt} :
+        AluOp == `ALU_SLTU ? A < B :
         0;
     
     assign Zero = ~(|C);

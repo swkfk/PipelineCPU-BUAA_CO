@@ -9,7 +9,7 @@ module Controller(
     output [1:0] RegWriteSel,
     output AluASel,
     output AluBSel,
-    output [2:0] AluOp,
+    output [3:0] AluOp,
     output ExtOp,
     output DmWriteEn,
     output [1:0] NpcSel,
@@ -35,6 +35,7 @@ module Controller(
     assign _or =  (special && func == `OR);
     assign slt = (special && func == `SLT);
     assign sltu = (special && func == `SLTU);
+    
     assign lui = (opCode == `LUI);
     
     assign addi = (opCode == `ADDI);
@@ -64,35 +65,41 @@ module Controller(
     assign jal = (opCode == `JAL);
     assign jr  = (special && func == `JR);
 
+    wire calc_rr = add | sub | _and | _or | slt | sltu;
+    wire calc_ri = addi | andi | ori;  // | lui
+    wire load    = lw | lh | lb;
+    wire store   = sw | sh | sb;
+
     assign BType = beq ? `Br_BEQ :
                    bne ? `Br_BNE :
                    3'b000;
-    assign InstrType = (add | sub | lui | sll | _and | _or | slt | sltu | addi | andi | ori) ? `CalcType : 
-                       (lw | lh | lb) ? `LoadType :
+    assign InstrType = (calc_rr | calc_ri | lui | sll) ? `CalcType : 
+                       (load) ? `LoadType :
                        (beq | jr | bne) ? `JumpType :
                        2'b0;
-    assign TuseRS = (add | sub | ori | lui | _and | _or | slt | sltu | addi | andi | lw | lh | lb | sw | sh | sb) ? 3'd1 :
+    assign TuseRS = (calc_ri | calc_rr | lui | load | store) ? 3'd1 :
                     (beq | jr | bne) ? 3'd0 :
                     3'd3;
-    assign TuseRT = (add | sub | sll | _and | _or | slt | sltu) ? 3'd1 :
+    assign TuseRT = (calc_rr | sll) ? 3'd1 :
                     (beq | bne) ? 3'd0 :
-                    (sw | sh | sb)  ? 3'd2 :
+                    (store)  ? 3'd2 :
                     3'd3;
 
-    assign RegWriteEn = (add | sub | sll | ori | lw | jal | lui);
-    assign RegWriteSrc[0] = lw;
+    assign RegWriteEn = (calc_rr | calc_ri | lui | sll | load | jal);
+    assign RegWriteSrc[0] = load;
     assign RegWriteSrc[1] = jal;
-    assign RegWriteSel[0] = (add | sub | sll);
+    assign RegWriteSel[0] = (calc_rr | sll);
     assign RegWriteSel[1] = jal;
     assign AluASel = sll;
-    assign AluBSel = (ori | lui | lw | sw);
-    assign ExtOp = (lw | sw);
-    assign DmWriteEn = sw;
+    assign AluBSel = (calc_ri | load | store | lui);
+    assign ExtOp = (load | store | addi);
+    assign DmWriteEn = store;
     assign NpcSel[0] = (beq | jr);
     assign NpcSel[1] = (jal | jr);
 
-    assign AluOp[0] = (lui | beq | sub);
-    assign AluOp[1] = (lui | ori);
-    assign AluOp[2] = sll;
+    assign AluOp[0] = (lui | beq | sub | _and | sltu | andi);
+    assign AluOp[1] = (lui | ori | _or | slt | sltu);
+    assign AluOp[2] = (sll | _and | slt | sltu | andi);
+    assign AluOp[3] = 1'b0;
 
 endmodule

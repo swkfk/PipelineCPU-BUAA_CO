@@ -54,11 +54,14 @@
 `define JAL 6'b000011
 `define JR  6'b001000
 
-`define ALU_ADD 3'b000
-`define ALU_SUB 3'b001
-`define ALU_OR  3'b010
-`define ALU_LUI 3'b011
-`define ALU_SLL 3'b100
+`define ALU_ADD 4'b0000
+`define ALU_SUB 4'b0001
+`define ALU_OR  4'b0010
+`define ALU_LUI 4'b0011
+`define ALU_SLL 4'b0100
+`define ALU_AND 4'b0101
+`define ALU_SLT 4'b0110
+`define ALU_SLTU 4'b0111
 
 `define IR_RD 15:11
 `define IR_RT 20:16
