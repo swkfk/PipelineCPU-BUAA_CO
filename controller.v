@@ -19,33 +19,64 @@ module Controller(
     output [2:0] TuseRT
     );
 
-    wire add, sub, ori, lw, sw, beq, lui, jal, jr, sll;
+    wire add, sub, _and, _or, slt, sltu, lui;
+    wire addi, andi, ori;
+    wire lb, lh, lw, sb, sh, sw;
+    wire mult, multu, div, divu, mfhi, mflo, mthi, mtlo;
+    wire beq, bne, jal, jr;
+    
     wire special;
     
     assign special = ~(|opCode);
     
     assign add = (special && func == `ADD);
     assign sub = (special && func == `SUB);
-    assign sll = (special && func == `SLL);
-    assign ori = (opCode == `ORI);
+    assign _and = (special && func == `AND);
+    assign _or =  (special && func == `OR);
+    assign slt = (special && func == `SLT);
+    assign sltu = (special && func == `SLTU);
     assign lui = (opCode == `LUI);
-    assign beq = (opCode == `BEQ);
+    
+    assign addi = (opCode == `ADDI);
+    assign andi = (opCode == `ANDI);
+    assign ori = (opCode == `ORI);
+    
+    assign lb = (opCode == `LB);
+    assign lh  = (opCode == `LH);
     assign lw  = (opCode == `LW);
+    assign sb = (opCode == `SB);
+    assign sh  = (opCode == `SH);
     assign sw  = (opCode == `SW);
+    
+    assign sll = (special && func == `SLL);
+
+    assign mult = (special && func == `MULT);
+    assign multu = (special && func == `MULTU);
+    assign div = (special && func == `DIV);
+    assign divu = (special && func == `DIVU);
+    assign mfhi = (special && func == `MFHI);
+    assign mflo = (special && func == `MFLO);
+    assign mthi = (special && func == `MTHI);
+    assign mtlo = (special && func == `MTLO);
+
+    assign beq = (opCode == `BEQ);
+    assign bne = (opCode == `BNE);
     assign jal = (opCode == `JAL);
     assign jr  = (special && func == `JR);
 
-    assign BType = beq ? `Br_BEQ : 3'b000;
-    assign InstrType = (add | sub | ori | lui | sll) ? `CalcType : 
-                       (lw) ? `LoadType :
-                       (beq | jr) ? `JumpType :
+    assign BType = beq ? `Br_BEQ :
+                   bne ? `Br_BNE :
+                   3'b000;
+    assign InstrType = (add | sub | lui | sll | _and | _or | slt | sltu | addi | andi | ori) ? `CalcType : 
+                       (lw | lh | lb) ? `LoadType :
+                       (beq | jr | bne) ? `JumpType :
                        2'b0;
-    assign TuseRS = (add | sub | ori | lui | lw | sw) ? 3'd1 :
-                    (beq | jr) ? 3'd0 :
+    assign TuseRS = (add | sub | ori | lui | _and | _or | slt | sltu | addi | andi | lw | lh | lb | sw | sh | sb) ? 3'd1 :
+                    (beq | jr | bne) ? 3'd0 :
                     3'd3;
-    assign TuseRT = (add | sub | sll) ? 3'd1 :
-                    (beq) ? 3'd0 :
-                    (sw)  ? 3'd2 :
+    assign TuseRT = (add | sub | sll | _and | _or | slt | sltu) ? 3'd1 :
+                    (beq | bne) ? 3'd0 :
+                    (sw | sh | sb)  ? 3'd2 :
                     3'd3;
 
     assign RegWriteEn = (add | sub | sll | ori | lw | jal | lui);

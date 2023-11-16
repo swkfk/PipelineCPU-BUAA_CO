@@ -34,7 +34,7 @@ module mips(
     );
 
     wire [31:0] instruction = i_inst_rdata;
-    wire [31:0] pc, pc4, pc8;
+    wire [31:0] pc, pc8;
     
     assign i_inst_addr = pc;
     
@@ -47,19 +47,18 @@ module mips(
         .regData(RegRD1$FWD),  // RD1 @D
         .branch(b_jump),  // branch @D
         .PC(pc),
-        .PC4(pc4),
         .PC8(pc8),
         .En(!stall)
     );
 
     /*** vvv D Stage Registers vvv ***/
     wire [31:0] instruction$D;
-    wire [31:0] PC4$D, PC8$D;
+    wire [31:0] PC$D, PC8$D;
     wire Stall$D = stall;
     wire Clear$D = reset;
     
     PReg u_instr$D (clk, Stall$D, Clear$D, instruction, instruction$D);
-    PReg u_PC4$D   (clk, Stall$D, Clear$D, pc4, PC4$D);
+    PReg u_PC$D    (clk, Stall$D, Clear$D, pc, PC$D);
     PReg u_PC8$D   (clk, Stall$D, Clear$D, pc8, PC8$D);
     /*** ^^^ D Stage Registers ^^^ ***/
     
@@ -164,7 +163,7 @@ module mips(
     assign w_grf_we = RegWriteEn$W;
     assign w_grf_addr = A3$W;
     assign w_grf_wdata = WD$_W;
-    assign w_inst_addr = PC4$W - 32'h4;
+    assign w_inst_addr = PC$W;
     
     wire b_jump;
     
@@ -173,7 +172,7 @@ module mips(
     /*** vvv E Stage Registers vvv ***/
     wire [31:0] V1$E, V2$E, E32$E, S32$E;  // S32: Shamt 32
     wire [4:0]  A1$E, A2$E, A3$E;
-    wire [31:0] PC4$E, PC8$E;
+    wire [31:0] PC$E, PC8$E;
     
     wire AluASel$E, AluBSel$E, DmWriteEn$E;
     wire [2:0] AluOp$E;
@@ -192,7 +191,7 @@ module mips(
     PReg #(.Width(5)) u_a1$E (clk, Stall$E, Clear$E, RegRA1, A1$E);
     PReg #(.Width(5)) u_a2$E (clk, Stall$E, Clear$E, RegRA2, A2$E);
     PReg #(.Width(5)) u_a3$E (clk, Stall$E, Clear$E, RegWA, A3$E);
-    PReg u_pc4$E (clk, Stall$E, Clear$E, PC4$D, PC4$E);
+    PReg u_pc$E  (clk, Stall$E, Clear$E, PC$D,  PC$E);
     PReg u_pc8$E (clk, Stall$E, Clear$E, PC8$D, PC8$E);
     // PReg #(.Width(16)) u_i16$E (clk, Stall$E, Clear$E, imm16, I16$E);
     PReg #(.Width(1)) u_aluasel$E (clk, Stall$E, Clear$E, AluASel, AluASel$E);
@@ -244,7 +243,7 @@ module mips(
     /*** vvv M Stage Registers vvv ***/
     wire [31:0] AO$M, V2$M;
     wire [4:0]  A3$M, A2$M;
-    wire [31:0] PC4$M, PC8$M;
+    wire [31:0] PC$M, PC8$M;
     
     wire DmWriteEn$M, RegWriteEn$M;
     wire [1:0] RegWriteSrc$M;
@@ -257,7 +256,7 @@ module mips(
     PReg #(.Width(5)) u_a3$M (clk, Stall$M, Clear$M, A3$E, A3$M);
     PReg u_v2$M (clk, Stall$M, Clear$M, V2$E$FWD, V2$M);
     PReg #(.Width(5)) u_a2$M (clk, Stall$M, Clear$M, A2$E, A2$M);
-    PReg u_pc4$M (clk, Stall$M, Clear$M, PC4$E, PC4$M);
+    PReg u_pc$M  (clk, Stall$M, Clear$M, PC$E,  PC$M);
     PReg u_pc8$M (clk, Stall$M, Clear$M, PC8$E, PC8$M);
     PReg #(.Width(1)) u_dmwe$M (clk, Stall$M, Clear$M, DmWriteEn$E, DmWriteEn$M);
     PReg #(.Width(1)) u_rfwe$M (clk, Stall$M, Clear$M, RegWriteEn$E, RegWriteEn$M);
@@ -277,13 +276,13 @@ module mips(
     assign m_data_addr = DmAddr;
     assign m_data_wdata = DmWD$FWD;
     assign m_data_byteen = {4{DmWriteEn$M}};  // TODO!!!
-    assign m_inst_addr = PC4$M - 32'h4;
+    assign m_inst_addr = PC$M;
     /*** ^^^ Data Memory ^^^ ***/
     
     /*** vvv W Stage Registers vvv ***/
     wire [31:0] AO$W, DR$W;
     wire [4:0]  A3$W;
-    wire [31:0] PC4$W, PC8$W;
+    wire [31:0] PC$W, PC8$W;
     
     wire Stall$W = 1'b0;
     wire Clear$W = reset;
@@ -294,7 +293,7 @@ module mips(
     PReg u_ao$W  (clk, Stall$W, Clear$W, AO$M, AO$W);
     PReg #(.Width(5)) u_a3$W (clk, Stall$W, Clear$W, A3$M, A3$W);
     PReg u_dr$W  (clk, Stall$W, Clear$W, DmRD, DR$W);
-    PReg u_pc4$W (clk, Stall$W, Clear$W, PC4$M, PC4$W);
+    PReg u_pc$W  (clk, Stall$W, Clear$W, PC$M,  PC$W);
     PReg u_pc8$W (clk, Stall$W, Clear$W, PC8$M, PC8$W);
     PReg #(.Width(1)) u_rfwe$W (clk, Stall$W, Clear$W, RegWriteEn$M, RegWriteEn$W);
     PReg #(.Width(2)) u_rfws$W (clk, Stall$W, Clear$W, RegWriteSrc$M, RegWriteSrc$W);

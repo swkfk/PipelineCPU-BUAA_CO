@@ -10,13 +10,12 @@ module IFU(
     input [31:0] regData,
     input branch,
     output [31:0] PC,
-    output [31:0] PC4,
     output [31:0] PC8,
     input En
     );
 
     reg  [31:0] PC_R;
-    wire [31:0] NPC;
+    wire [31:0] NPC, PC4;
 
     always @(posedge clk) begin
         if (reset)
