@@ -287,7 +287,13 @@ module mips(
         .data_w_byteen(m_data_byteen)
     );
     
-    assign DmRD = m_data_rdata;  // TODO
+    DmRDExt u_data_extender(
+        .data_read_in(m_data_rdata),
+        .read_type(DmAccessType$M),
+        .addr_low(DmAddr[1:0]),
+        .data_read_out(DmRD)
+    );
+    
     assign m_data_addr = DmAddr;
     assign m_inst_addr = PC$M;
     /*** ^^^ Data Memory ^^^ ***/
