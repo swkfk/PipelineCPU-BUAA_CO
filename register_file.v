@@ -9,12 +9,10 @@ module GRF(
     input [31:0] WD,
     input WrEn,
     output [31:0] RD1,
-    output [31:0] RD2,
-    input [31:0] PC4
+    output [31:0] RD2
     );
 
     reg  [31:0] REG[31:0];
-    wire [31:0] PC = PC4 - 32'd4;
     
     integer i;
     
@@ -27,7 +25,6 @@ module GRF(
         else begin
             if (WrEn && A3 != 5'b0) begin
                 REG[A3] <= WD;
-                $display("%d@%h: $%d <= %h", $time, PC, A3, WD);
             end
             else begin
                 REG[A3] <= REG[A3];

@@ -12,7 +12,6 @@ module IFU(
     output [31:0] PC,
     output [31:0] PC4,
     output [31:0] PC8,
-    output [31:0] Instr,
     input En
     );
 
@@ -39,11 +38,6 @@ module IFU(
         .DI_10({PC[31:28], imm26, 2'b00}),
         .DI_11(regData),
         .DO(NPC)
-    );
-    
-    IM u_im (
-        .PC(PC),
-        .Instr(Instr)
     );
 
 endmodule

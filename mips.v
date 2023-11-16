@@ -3,8 +3,19 @@
 
 module mips(
     input clk,
-    input reset
-    );
+    input reset,
+    input [31:0] i_inst_rdata,
+    input [31:0] m_data_rdata,
+    output [31:0] i_inst_addr,
+    output [31:0] m_data_addr,
+    output [31:0] m_data_wdata,
+    output [3 :0] m_data_byteen,
+    output [31:0] m_inst_addr,
+    output w_grf_we,
+    output [4:0] w_grf_addr,
+    output [31:0] w_grf_wdata,
+    output [31:0] w_inst_addr
+);
     
     wire stall;
     
@@ -22,8 +33,10 @@ module mips(
         .stall(stall)
     );
 
-    wire [31:0] instruction;
+    wire [31:0] instruction = i_inst_rdata;
     wire [31:0] pc, pc4, pc8;
+    
+    assign i_inst_addr = pc;
     
     IFU u_ifu(
         .clk(clk),
@@ -36,7 +49,6 @@ module mips(
         .PC(pc),
         .PC4(pc4),
         .PC8(pc8),
-        .Instr(instruction),
         .En(!stall)
     );
 
@@ -146,9 +158,13 @@ module mips(
         .WD(WD$_W),  // Write back
         .WrEn(RegWriteEn$W),  // Write back
         .RD1(RegRD1),
-        .RD2(RegRD2),
-        .PC4(PC4$W)
+        .RD2(RegRD2)
     );
+    
+    assign w_grf_we = RegWriteEn$W;
+    assign w_grf_addr = A3$W;
+    assign w_grf_wdata = WD$_W;
+    assign w_inst_addr = PC4$W - 32'h4;
     
     wire b_jump;
     
@@ -256,15 +272,13 @@ module mips(
    
     assign DmWD$FWD = (A2$M == A3$W && A3$W && RegWriteEn$W) ? WD$_W : DmWD;
     
-    DM u_dm(
-        .clk(clk),
-        .reset(reset),
-        .WAddr(DmAddr),
-        .WData(DmWD$FWD),
-        .WrEn(DmWriteEn$M),
-        .RD(DmRD),
-        .PC4(PC4$M)
-    );
+    /*** vvv Data Memory vvv ***/
+    assign DmRD = m_data_rdata;
+    assign m_data_addr = DmAddr;
+    assign m_data_wdata = DmWD$FWD;
+    assign m_data_byteen = {4{DmWriteEn$M}};  // TODO!!!
+    assign m_inst_addr = PC4$M - 32'h4;
+    /*** ^^^ Data Memory ^^^ ***/
     
     /*** vvv W Stage Registers vvv ***/
     wire [31:0] AO$W, DR$W;
