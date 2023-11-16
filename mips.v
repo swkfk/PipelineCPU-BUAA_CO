@@ -86,7 +86,7 @@ module mips(
         .imm26(imm26)
     );
      
-    wire [2:0] BrType;
+    wire [2:0] BrType, DmAcessType;
     
     Controller u_ctrl(
         .opCode(opcode),
@@ -99,6 +99,7 @@ module mips(
         .AluOp(AluOp),
         .ExtOp(ExtOp),
         .DmWriteEn(DmWriteEn),
+        .DmAcessType(DmAcessType),
         .NpcSel(NpcSel),
         .BType(BrType),
         .InstrType(type),
@@ -181,6 +182,8 @@ module mips(
     
     wire [1:0] type$E;
     
+    wire [2:0] DmAcessType$E;
+    
     wire Stall$E = 1'b0;
     wire Clear$E = stall || reset;
     
@@ -198,6 +201,7 @@ module mips(
     PReg #(.Width(1)) u_alubsel$E (clk, Stall$E, Clear$E, AluBSel, AluBSel$E);
     PReg #(.Width(4)) u_aluop$E   (clk, Stall$E, Clear$E, AluOp, AluOp$E);
     PReg #(.Width(1)) u_dmwe$E (clk, Stall$E, Clear$E, DmWriteEn, DmWriteEn$E);
+    PReg #(.Width(3)) u_dmtype$E (clk, Stall$E, Clear$E, DmAcessType, DmAcessType$E);
     PReg #(.Width(1)) u_rfwe$E (clk, Stall$E, Clear$E, RegWriteEn, RegWriteEn$E);
     PReg #(.Width(2)) u_rfws$E (clk, Stall$E, Clear$E, RegWriteSrc, RegWriteSrc$E);
     PReg #(.Width(2)) u_type$E (clk, Stall$E, Clear$E, type, type$E);
@@ -246,6 +250,7 @@ module mips(
     wire [31:0] PC$M, PC8$M;
     
     wire DmWriteEn$M, RegWriteEn$M;
+    wire [2:0] DmAccessType$M;
     wire [1:0] RegWriteSrc$M;
     wire [1:0] type$M;
     
@@ -259,6 +264,7 @@ module mips(
     PReg u_pc$M  (clk, Stall$M, Clear$M, PC$E,  PC$M);
     PReg u_pc8$M (clk, Stall$M, Clear$M, PC8$E, PC8$M);
     PReg #(.Width(1)) u_dmwe$M (clk, Stall$M, Clear$M, DmWriteEn$E, DmWriteEn$M);
+    PReg #(.Width(3)) u_dmtype$M (clk, Stall$M, Clear$M, DmAcessType$E, DmAccessType$M);
     PReg #(.Width(1)) u_rfwe$M (clk, Stall$M, Clear$M, RegWriteEn$E, RegWriteEn$M);
     PReg #(.Width(2)) u_rfws$M (clk, Stall$M, Clear$M, RegWriteSrc$E, RegWriteSrc$M);
     PReg #(.Width(2)) u_type$M (clk, Stall$M, Clear$M, type$E, type$M);
@@ -272,10 +278,17 @@ module mips(
     assign DmWD$FWD = (A2$M == A3$W && A3$W && RegWriteEn$W) ? WD$_W : DmWD;
     
     /*** vvv Data Memory vvv ***/
-    assign DmRD = m_data_rdata;
+    
+    BE u_be(
+        .data_w_in(DmWD$FWD),
+        .addr_low(DmAddr[1:0]),
+        .write_type(DmAccessType$M),
+        .data_w_out(m_data_wdata),
+        .data_w_byteen(m_data_byteen)
+    );
+    
+    assign DmRD = m_data_rdata;  // TODO
     assign m_data_addr = DmAddr;
-    assign m_data_wdata = DmWD$FWD;
-    assign m_data_byteen = {4{DmWriteEn$M}};  // TODO!!!
     assign m_inst_addr = PC$M;
     /*** ^^^ Data Memory ^^^ ***/
     

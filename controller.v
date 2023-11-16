@@ -12,6 +12,7 @@ module Controller(
     output [3:0] AluOp,
     output ExtOp,
     output DmWriteEn,
+    output [2:0] DmAcessType,
     output [1:0] NpcSel,
     output [2:0] BType,
     output [1:0] InstrType,
@@ -94,6 +95,14 @@ module Controller(
     assign AluBSel = (calc_ri | load | store | lui);
     assign ExtOp = (load | store | addi);
     assign DmWriteEn = store;
+    assign DmAcessType = 
+                lw ? `WordRead :
+                lh ? `HalfSigned :
+                lb ? `ByteSigned :
+                sw ? `Word :
+                sh ? `Half :
+                sb ? `Byte :
+                3'b000;
     assign NpcSel[0] = (bne | beq | jr);
     assign NpcSel[1] = (jal | jr);
 

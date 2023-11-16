@@ -74,4 +74,13 @@
 `define LoadType 2'b10
 `define JumpType 2'b00
 
+`define Byte          3'b101
+`define Half          3'b110
+`define Word          3'b111
+`define WordRead      3'b000
+`define ByteSigned    3'b001
+`define ByteUnsigned  3'b010
+`define HalfSigned    3'b011
+`define HalfUnsigned  3'b100
+
 `endif
