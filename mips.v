@@ -30,7 +30,9 @@ module mips(
         .WE$M(RegWriteEn$M),
         .TuseRS(TuseRS),
         .TuseRT(TuseRT),
-        .stall(stall)
+        .stall(stall),
+        .mdu_busy(MduBusy || MduStart$E),
+        .hilo(MduHiLo)
     );
 
     wire [31:0] instruction = i_inst_rdata;
@@ -87,6 +89,8 @@ module mips(
     );
      
     wire [2:0] BrType, DmAcessType;
+    wire [3:0] MDType;
+    wire MduStart, MduBusy, MduHiLo;
     
     Controller u_ctrl(
         .opCode(opcode),
@@ -104,8 +108,12 @@ module mips(
         .BType(BrType),
         .InstrType(type),
         .TuseRS(TuseRS),
-        .TuseRT(TuseRT)
+        .TuseRT(TuseRT),
+        .MduStart(MduStart),
+        .MDUType(MDType)
     );
+    
+    assign MduHiLo = MDType == `MDU_MFHI || MDType == `MDU_MFLO;
     
     wire [31:0] ext32, shamt32;
     
@@ -140,11 +148,13 @@ module mips(
     assign RegRD1$FWD = (RegRA1 == A3$E && A3$E && RegWriteEn$E && RegWriteSrc$E == `REGWr_PC4) ? PC8$E :
                         (RegRA1 == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
                         (RegRA1 == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_PC4) ? PC8$M :
+                        (RegRA1 == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_HiLo) ? MDO$M :
                         (RegRA1 == A3$W && A3$W && RegWriteEn$W) ? WD$_W :
                         RegRD1;
     assign RegRD2$FWD = (RegRA2 == A3$E && A3$E && RegWriteEn$E && RegWriteSrc$E == `REGWr_PC4) ? PC8$E :
                         (RegRA2 == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
                         (RegRA2 == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_PC4) ? PC8$M :
+                        (RegRA2 == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_HiLo) ? MDO$M :
                         (RegRA2 == A3$W && A3$W && RegWriteEn$W) ? WD$_W :
                         RegRD2;
     /*** ^^^ Forward: D Stage ^^^ ***/
@@ -173,10 +183,10 @@ module mips(
     /*** vvv E Stage Registers vvv ***/
     wire [31:0] V1$E, V2$E, E32$E, S32$E;  // S32: Shamt 32
     wire [4:0]  A1$E, A2$E, A3$E;
-    wire [31:0] PC$E, PC8$E;
+    wire [31:0] PC$E, PC8$E, MDO$E;
     
-    wire AluASel$E, AluBSel$E, DmWriteEn$E;
-    wire [3:0] AluOp$E;
+    wire AluASel$E, AluBSel$E, DmWriteEn$E, MduStart$E;
+    wire [3:0] AluOp$E, MDType$E;
     wire [1:0] RegWriteSrc$E;
     // wire [15:0] I16$E;
     
@@ -199,6 +209,8 @@ module mips(
     // PReg #(.Width(16)) u_i16$E (clk, Stall$E, Clear$E, imm16, I16$E);
     PReg #(.Width(1)) u_aluasel$E (clk, Stall$E, Clear$E, AluASel, AluASel$E);
     PReg #(.Width(1)) u_alubsel$E (clk, Stall$E, Clear$E, AluBSel, AluBSel$E);
+    PReg #(.Width(1)) u_mdu_start$E (clk, Stall$E, Clear$E, MduStart, MduStart$E);
+    PReg #(.Width(4)) u_mdu_type$E (clk, Stall$E, Clear$E, MDType, MDType$E);
     PReg #(.Width(4)) u_aluop$E   (clk, Stall$E, Clear$E, AluOp, AluOp$E);
     PReg #(.Width(1)) u_dmwe$E (clk, Stall$E, Clear$E, DmWriteEn, DmWriteEn$E);
     PReg #(.Width(3)) u_dmtype$E (clk, Stall$E, Clear$E, DmAcessType, DmAcessType$E);
@@ -208,16 +220,18 @@ module mips(
     /*** ^^^ E Stage Registers ^^^ ***/
 
     wire        AluZero;
-    wire [31:0] AluA, AluB, AluC;
+    wire [31:0] AluA, AluB, AluC, MDOut;
     
     /*** vvv Forward: E Stage vvv ***/
     wire [31:0] V1$E$FWD, V2$E$FWD;
     assign V1$E$FWD = (A1$E == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
                       (A1$E == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_PC4) ? PC8$M :
+                      (A1$E == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_HiLo) ? MDO$M :
                       (A1$E == A3$W && A3$W && RegWriteEn$W) ? WD$_W :
                       V1$E;
     assign V2$E$FWD = (A2$E == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_Alu) ? AO$M :
                       (A2$E == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_PC4) ? PC8$M :
+                      (A2$E == A3$M && A3$M && RegWriteEn$M && RegWriteSrc$M == `REGWr_HiLo) ? MDO$M :
                       (A2$E == A3$W && A3$W && RegWriteEn$W) ? WD$_W :
                       V2$E;
     /*** ^^^ Forward: E Stage ^^^ ***/
@@ -244,10 +258,21 @@ module mips(
         .Zero(AluZero)
     );
     
+    MDU u_mdu(
+        .clk(clk),
+        .reset(reset),
+        .start(MduStart$E),
+        .RS(V1$E$FWD),
+        .RT(V2$E$FWD),
+        .MDType(MDType$E),
+        .busy(MduBusy),
+        .MDOut(MDOut)
+    );
+    
     /*** vvv M Stage Registers vvv ***/
     wire [31:0] AO$M, V2$M;
     wire [4:0]  A3$M, A2$M;
-    wire [31:0] PC$M, PC8$M;
+    wire [31:0] PC$M, PC8$M, MDO$M;
     
     wire DmWriteEn$M, RegWriteEn$M;
     wire [2:0] DmAccessType$M;
@@ -263,6 +288,7 @@ module mips(
     PReg #(.Width(5)) u_a2$M (clk, Stall$M, Clear$M, A2$E, A2$M);
     PReg u_pc$M  (clk, Stall$M, Clear$M, PC$E,  PC$M);
     PReg u_pc8$M (clk, Stall$M, Clear$M, PC8$E, PC8$M);
+    PReg u_mdo$M (clk, Stall$M, Clear$M, MDOut, MDO$M);
     PReg #(.Width(1)) u_dmwe$M (clk, Stall$M, Clear$M, DmWriteEn$E, DmWriteEn$M);
     PReg #(.Width(3)) u_dmtype$M (clk, Stall$M, Clear$M, DmAcessType$E, DmAccessType$M);
     PReg #(.Width(1)) u_rfwe$M (clk, Stall$M, Clear$M, RegWriteEn$E, RegWriteEn$M);
@@ -301,7 +327,7 @@ module mips(
     /*** vvv W Stage Registers vvv ***/
     wire [31:0] AO$W, DR$W;
     wire [4:0]  A3$W;
-    wire [31:0] PC$W, PC8$W;
+    wire [31:0] PC$W, PC8$W, MDO$W;
     
     wire Stall$W = 1'b0;
     wire Clear$W = reset;
@@ -314,6 +340,7 @@ module mips(
     PReg u_dr$W  (clk, Stall$W, Clear$W, DmRD, DR$W);
     PReg u_pc$W  (clk, Stall$W, Clear$W, PC$M,  PC$W);
     PReg u_pc8$W (clk, Stall$W, Clear$W, PC8$M, PC8$W);
+    PReg u_mdo$W (clk, Stall$W, Clear$W, MDO$M, MDO$W);
     PReg #(.Width(1)) u_rfwe$W (clk, Stall$W, Clear$W, RegWriteEn$M, RegWriteEn$W);
     PReg #(.Width(2)) u_rfws$W (clk, Stall$W, Clear$W, RegWriteSrc$M, RegWriteSrc$W);
     /*** ^^^ W Stage Registers ^^^ ***/
@@ -325,6 +352,7 @@ module mips(
         .DI_00(AO$W),
         .DI_01(DR$W),
         .DI_10(PC8$W),
+        .DI_11(MDO$W),
         .DO(WD$_W)
     );
 

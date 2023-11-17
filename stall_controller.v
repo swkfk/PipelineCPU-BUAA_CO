@@ -12,7 +12,9 @@ module StallCtrl(
     input WE$M,
     input [2:0] TuseRS,
     input [2:0] TuseRT,
-    output stall
+    output stall,
+    input mdu_busy,
+    input hilo
     );
  
     wire [2:0] Tnew$E = Type$E == `LoadType ? 3'd2 :
@@ -26,6 +28,8 @@ module StallCtrl(
     wire stall_rt$E = (TuseRT < Tnew$E) && (WE$E) && (A2$D == A3$E) && A3$E;
     wire stall_rt$M = (TuseRT < Tnew$M) && (WE$M) && (A2$D == A3$M) && A3$M;
     
-    assign stall = stall_rs$E | stall_rs$M | stall_rt$E | stall_rt$M;
+    wire stall_mdu = mdu_busy && hilo;
+    
+    assign stall = stall_rs$E | stall_rs$M | stall_rt$E | stall_rt$M | stall_mdu;
 
 endmodule

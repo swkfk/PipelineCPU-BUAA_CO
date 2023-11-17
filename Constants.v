@@ -14,10 +14,11 @@
 `define REGWr_Alu 2'b00
 `define REGWr_Dm  2'b01
 `define REGWr_PC4 2'b10
+`define REGWr_HiLo 2'b11
 
-`define REGWrR_Rt  2'b00
-`define REGWrR_Rd  2'b01
-`define REGWrR_$ra 2'b10
+`define REGWrR_Rt   2'b00
+`define REGWrR_Rd   2'b01
+`define REGWrR_$ra  2'b10
 
 `define ADD 6'b100000
 `define SUB 6'b100010
@@ -62,6 +63,15 @@
 `define ALU_AND 4'b0101
 `define ALU_SLT 4'b0110
 `define ALU_SLTU 4'b0111
+
+`define MDU_MULT  4'b0010
+`define MDU_MULTU 4'b0011
+`define MDU_DIV   4'b0100
+`define MDU_DIVU  4'b0101
+`define MDU_MFHI  4'b1000
+`define MDU_MFLO  4'b1001
+`define MDU_MTHI  4'b1100
+`define MDU_MTLO  4'b1101
 
 `define IR_RD 15:11
 `define IR_RT 20:16

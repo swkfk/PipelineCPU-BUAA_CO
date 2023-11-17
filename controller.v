@@ -17,7 +17,9 @@ module Controller(
     output [2:0] BType,
     output [1:0] InstrType,
     output [2:0] TuseRS,
-    output [2:0] TuseRT
+    output [2:0] TuseRT,
+    output MduStart,
+    output [3:0]  MDUType
     );
 
     wire add, sub, _and, _or, slt, sltu, lui;
@@ -78,6 +80,15 @@ module Controller(
                        (load) ? `LoadType :
                        (beq | jr | bne) ? `JumpType :
                        2'b0;
+    assign MDUType = mult  ? `MDU_MULT :
+                     multu ? `MDU_MULTU :
+                     div   ? `MDU_DIV :
+                     divu  ? `MDU_DIVU :
+                     mfhi  ? `MDU_MFHI :
+                     mflo  ? `MDU_MFLO :
+                     mthi  ? `MDU_MTHI :
+                     mtlo  ? `MDU_MTLO :
+                     4'b0000;
     assign TuseRS = (calc_ri | calc_rr | lui | load | store) ? 3'd1 :
                     (beq | jr | bne) ? 3'd0 :
                     3'd3;
@@ -86,11 +97,11 @@ module Controller(
                     (store)  ? 3'd2 :
                     3'd3;
 
-    assign RegWriteEn = (calc_rr | calc_ri | lui | sll | load | jal);
-    assign RegWriteSrc[0] = load;
-    assign RegWriteSrc[1] = jal;
-    assign RegWriteSel[0] = (calc_rr | sll);
-    assign RegWriteSel[1] = jal;
+    assign RegWriteEn = (calc_rr | calc_ri | lui | sll | load | jal | mfhi | mflo);
+    assign RegWriteSrc[0] = (load | mfhi | mflo);
+    assign RegWriteSrc[1] = (jal | mfhi | mflo);
+    assign RegWriteSel[0] = (calc_rr | sll | mfhi | mflo);
+    assign RegWriteSel[1] = (jal);
     assign AluASel = sll;
     assign AluBSel = (calc_ri | load | store | lui);
     assign ExtOp = (load | store | addi);
@@ -110,5 +121,7 @@ module Controller(
     assign AluOp[1] = (lui | ori | _or | slt | sltu);
     assign AluOp[2] = (sll | _and | slt | sltu | andi);
     assign AluOp[3] = 1'b0;
+
+    assign MduStart = (mult | multu | div | divu | mthi | mtlo);
 
 endmodule
