@@ -113,7 +113,7 @@ module mips(
         .MDUType(MDType)
     );
     
-    assign MduHiLo = MDType == `MDU_MFHI || MDType == `MDU_MFLO;
+    assign MduHiLo = MDType == `MDU_MFHI || MDType == `MDU_MFLO || MDType == `MDU_MTHI || MDType == `MDU_MTLO;
     
     wire [31:0] ext32, shamt32;
     
