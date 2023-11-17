@@ -62,6 +62,8 @@ module Controller(
     assign mflo = (special && func == `MFLO);
     assign mthi = (special && func == `MTHI);
     assign mtlo = (special && func == `MTLO);
+    wire md = mult | multu | div | divu;
+    wire mt = mthi | mtlo;
 
     assign beq = (opCode == `BEQ);
     assign bne = (opCode == `BNE);
@@ -89,10 +91,10 @@ module Controller(
                      mthi  ? `MDU_MTHI :
                      mtlo  ? `MDU_MTLO :
                      4'b0000;
-    assign TuseRS = (calc_ri | calc_rr | lui | load | store) ? 3'd1 :
+    assign TuseRS = (calc_ri | calc_rr | lui | load | store | md | mt) ? 3'd1 :
                     (beq | jr | bne) ? 3'd0 :
                     3'd3;
-    assign TuseRT = (calc_rr | sll) ? 3'd1 :
+    assign TuseRT = (calc_rr | sll | md) ? 3'd1 :
                     (beq | bne) ? 3'd0 :
                     (store)  ? 3'd2 :
                     3'd3;

@@ -13,8 +13,8 @@ module StallCtrl(
     input [2:0] TuseRS,
     input [2:0] TuseRT,
     output stall,
-    input mdu_busy,
-    input hilo
+    input mdu_busy,  // busy signal is high or start signal is @E
+    input hilo  // mfhi or mflo
     );
  
     wire [2:0] Tnew$E = Type$E == `LoadType ? 3'd2 :
