@@ -64,6 +64,7 @@ module Controller(
     assign mtlo = (special && func == `MTLO);
     wire md = mult | multu | div | divu;
     wire mt = mthi | mtlo;
+    wire mf = mfhi | mflo;
 
     assign beq = (opCode == `BEQ);
     assign bne = (opCode == `BNE);
@@ -78,7 +79,7 @@ module Controller(
     assign BType = beq ? `Br_BEQ :
                    bne ? `Br_BNE :
                    3'b000;
-    assign InstrType = (calc_rr | calc_ri | lui | sll) ? `CalcType : 
+    assign InstrType = (calc_rr | calc_ri | lui | sll | mf) ? `CalcType : 
                        (load) ? `LoadType :
                        (beq | jr | bne) ? `JumpType :
                        2'b0;
