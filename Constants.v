@@ -84,6 +84,7 @@
 `define LoadType 2'b10
 `define JumpType 2'b00
 
+
 `define Byte          3'b101
 `define Half          3'b110
 `define Word          3'b111
