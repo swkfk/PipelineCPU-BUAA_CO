@@ -63,6 +63,7 @@ module CP0(
         end
     end
     
+    assign EPCOut = EPC;
     assign DOut = (A1 == `RegSR)    ? SR    :
                   (A1 == `RegCause) ? Cause :
                   (A1 == `RegEPC)   ? EPC   :

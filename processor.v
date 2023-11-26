@@ -35,6 +35,11 @@ module Processor(
         .mdu_busy(MduBusy || MduStart$E),
         .hilo(MduHiLo)
     );
+    
+    wire [31:0] EPC;
+    wire req;
+    wire eret$D;
+    wire ExcAdEL$F;
 
     wire [31:0] instruction = i_inst_rdata;
     wire [31:0] pc, pc8;
@@ -51,18 +56,27 @@ module Processor(
         .branch(b_jump),  // branch @D
         .PC(pc),
         .PC8(pc8),
-        .En(!stall)
+        .En(!stall),
+        
+        .EPC(EPC),
+        .req(req),
+        .eret(eret$D),
+        .ExcAdEL(ExcAdEL$F)
     );
+    
+    wire inst_in_bd$F;
 
     /*** vvv D Stage Registers vvv ***/
     wire [31:0] instruction$D;
     wire [31:0] PC$D, PC8$D;
+    wire inst_in_bd$D;
     wire Stall$D = stall;
     wire Clear$D = reset;
     
     PReg u_instr$D (clk, Stall$D, Clear$D, instruction, instruction$D);
     PReg u_PC$D    (clk, Stall$D, Clear$D, pc, PC$D);
     PReg u_PC8$D   (clk, Stall$D, Clear$D, pc8, PC8$D);
+    PReg #(.Width(1)) u_bd$D (clk, Stall$D, Clear$D, inst_in_bd$F, inst_in_bd$D);
     /*** ^^^ D Stage Registers ^^^ ***/
     
     wire [5:0]  opcode, func;
@@ -93,9 +107,13 @@ module Processor(
     wire [3:0] MDType;
     wire MduStart, MduBusy, MduHiLo;
     
+    wire ExcRI$D, ExcSyscall$D;
+    wire AllowExcOv$D, AllowExcDm$D;
+    
     Controller u_ctrl(
         .opCode(opcode),
         .func(func),
+        .cop0_code(rs),
         .RegWriteEn(RegWriteEn),
         .RegWriteSrc(RegWriteSrc),
         .RegWriteSel(RegWriteSel),
@@ -111,9 +129,15 @@ module Processor(
         .TuseRS(TuseRS),
         .TuseRT(TuseRT),
         .MduStart(MduStart),
-        .MDUType(MDType)
+        .MDUType(MDType),
+        .ExcRI(ExcRI$D),
+        .ExcSyscall(ExcSyscall$D),
+        .isEret(eret$D),
+        .AllowExcOv(AllowExcOv$D),
+        .AllowExcDm(AllowExcDm$D),
+        .NeedBd(inst_in_bd$F)
     );
-    
+
     assign MduHiLo = MDType == `MDU_MFHI || MDType == `MDU_MFLO || MDType == `MDU_MTHI || MDType == `MDU_MTLO;
     
     wire [31:0] ext32, shamt32;
@@ -191,6 +215,8 @@ module Processor(
     wire [1:0] RegWriteSrc$E;
     // wire [15:0] I16$E;
     
+    wire AllowExcOv$E, AllowExcDm$E;
+    
     wire [1:0] type$E;
     
     wire [2:0] DmAcessType$E;
@@ -218,6 +244,8 @@ module Processor(
     PReg #(.Width(1)) u_rfwe$E (clk, Stall$E, Clear$E, RegWriteEn, RegWriteEn$E);
     PReg #(.Width(2)) u_rfws$E (clk, Stall$E, Clear$E, RegWriteSrc, RegWriteSrc$E);
     PReg #(.Width(2)) u_type$E (clk, Stall$E, Clear$E, type, type$E);
+    PReg #(.Width(1)) u_allow_ov$E(clk, Stall$E, Clear$E, AllowExcOv$D, AllowExcOv$E);
+    PReg #(.Width(1)) u_allow_dm$E(clk, Stall$E, Clear$E, AllowExcDm$D, AllowExcDm$E);
     /*** ^^^ E Stage Registers ^^^ ***/
 
     wire        AluZero;
@@ -236,6 +264,8 @@ module Processor(
                       (A2$E == A3$W && A3$W && RegWriteEn$W) ? WD$_W :
                       V2$E;
     /*** ^^^ Forward: E Stage ^^^ ***/
+    
+    wire ExcOv$E, ExcDm$E;
     
     MUX32_2 u_mux_alu_a(
         .Sel(AluASel$E),
@@ -256,7 +286,11 @@ module Processor(
         .B(AluB),
         .AluOp(AluOp$E),
         .C(AluC),
-        .Zero(AluZero)
+        .Zero(AluZero),
+        .AllowExcOv(AllowExcOv$E),
+        .AllowExcDm(AllowExcDm$E),
+        .ExcOv(ExcOv$E),
+        .ExcDm(ExcDm$E)
     );
     
     MDU u_mdu(

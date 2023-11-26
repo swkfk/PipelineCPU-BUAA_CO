@@ -55,6 +55,13 @@
 `define JAL 6'b000011
 `define JR  6'b001000
 
+`define SYSCALL 6'b001100
+
+`define COP0 6'b010000
+`define ERET 6'b011000
+`define MTC0 5'b00100
+`define MFC0 5'b00000
+
 `define ALU_ADD 4'b0000
 `define ALU_SUB 4'b0001
 `define ALU_OR  4'b0010

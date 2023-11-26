@@ -4,6 +4,7 @@
 module Controller(
     input [5:0] opCode,
     input [5:0] func,
+    input [4:0] cop0_code,
     output RegWriteEn,
     output [1:0] RegWriteSrc,
     output [1:0] RegWriteSel,
@@ -19,7 +20,13 @@ module Controller(
     output [2:0] TuseRS,
     output [2:0] TuseRT,
     output MduStart,
-    output [3:0]  MDUType
+    output [3:0]  MDUType,
+    output ExcRI,
+    output ExcSyscall,
+    output isEret,
+    output AllowExcOv,
+    output AllowExcDm,
+    output NeedBd
     );
 
     wire add, sub, _and, _or, slt, sltu, lui;
@@ -27,6 +34,7 @@ module Controller(
     wire lb, lh, lw, sb, sh, sw;
     wire mult, multu, div, divu, mfhi, mflo, mthi, mtlo;
     wire beq, bne, jal, jr;
+    wire eret, syscall, mtc0, mfc0;
     
     wire special;
     
@@ -75,6 +83,23 @@ module Controller(
     wire calc_ri = addi | andi | ori;  // | lui
     wire load    = lw | lh | lb;
     wire store   = sw | sh | sb;
+    
+    wire COP0 = opCode == `COP0;
+    assign eret = COP0 && func == `ERET;
+    assign mtc0 = COP0 && cop0_code == `MTC0;
+    assign mfc0 = COP0 && cop0_code == `MFC0;
+    assign syscall = special && func == `SYSCALL;
+    assign isEret = eret;
+    
+    assign AllowExcOv = add | addi | sub;
+    assign AllowExcDm = load | store;
+    assign NeedBd = beq | bne | jal | jr;
+    
+    assign ExcRI = !(add | sub | _and | _or | slt | sltu | lui |
+                     addi | andi | ori | lb | lh | lw | sb | sh | sw |
+                     mult | multu | div | divu | mfhi | mflo | mthi | mtlo |
+                     beq | bne | jal | jr | eret | syscall | mtc0 | mfc0);
+    assign ExcSyscall = syscall;
 
     assign BType = beq ? `Br_BEQ :
                    bne ? `Br_BNE :

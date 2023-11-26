@@ -6,7 +6,11 @@ module ALU(
     input [31:0] B,
     input [3:0] AluOp,
     output [31:0] C,
-    output Zero
+    output Zero,
+    input AllowExcOv,
+    output ExcOv,
+    input AllowExcDm,
+    output ExcDm
     );
 
     wire signed slt = $signed(A) < $signed(B) ? 1'b1 : 1'b0;
@@ -23,5 +27,14 @@ module ALU(
         0;
     
     assign Zero = ~(|C);
+    
+    wire [32:0] A32 = {A[31], A}, B32 = {B[31], B};
+    wire [32:0] Add32 = A32 + B32, Sub32 = A32 - B32;
+    wire AddOv = (AluOp == `ALU_ADD) && (Add32[32] != Add32[31]);
+    wire SubOv = (AluOp == `ALU_SUB) && (Sub32[32] != Sub32[31]);
+    wire Ov = AddOv | SubOv;
+
+    assign ExcOv = AllowExcOv && Ov;
+    assign ExcDm = AllowExcDm && Ov;
 
 endmodule
