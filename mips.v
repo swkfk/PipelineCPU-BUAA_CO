@@ -109,7 +109,8 @@ module mips(
         .Addr (tb0_addr),
         .WE   (tb0_we),
         .Din  (tb0_wdata),
-        .Dout (tb0_rdata)
+        .Dout (tb0_rdata),
+        .IRQ  (tc0_irq)
     );
     
     TC u_tc1(
@@ -118,7 +119,8 @@ module mips(
         .Addr (tb1_addr),
         .WE   (tb1_we),
         .Din  (tb1_wdata),
-        .Dout (tb1_rdata)
+        .Dout (tb1_rdata),
+        .IRQ  (tc1_irq)
     );
 
 endmodule
