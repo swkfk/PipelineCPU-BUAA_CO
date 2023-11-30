@@ -27,22 +27,6 @@ module Bridge(
     // For Interrupt
     output [31: 0] int_addr,
     output [ 3: 0] int_byteen
-//    input [31:0] VAddr,
-//    input [2:0]  AccessType,
-//    input [31:0] WriteData,
-//    input [31:0] DMData,
-//    input [31:0] TC0Data,
-//    input [31:0] TC1Data,
-//    output [31:0] TC0AddrOut,
-//    output [31:0] TC1AddrOut,
-//    output [31:0] DMAddrOut,
-//    output [3:0]  DMByteenOut,
-//    output [31:0] IntAddrOut,
-//    output [3:0]  IntByteenOut,
-//    output [31:0] WriteDataOut,
-//    output TC0We,
-//    output TC1We,
-//    output [31:0] CPUOut,
     );
     
     wire _dm  = p_addr >= `DM_LOW_BOUND  && p_addr <= `DM_HIGH_BOUND;
@@ -71,60 +55,5 @@ module Bridge(
                      _tc0 ? tc0_rdata :
                      _tc1 ? tc1_rdata :
                      32'h0000_0000;
-
-
-//    wire [31: 0] byteened_data;
-//    wire [ 3: 0] byteen_out;    // |byteen_out == 0 when load
-//    
-//    wire load_byte = AccessType == `ByteSigned || AccessType == ByteUnsigned;
-//    wire load_half = AccessType == `HalfSigned || AccessType == `HalfUnsigned;
-//    wire load_word = AccessType == `WordRead;
-//    wire load = load_byte || load_half || load_word;
-//    wire store_byte = AccessType == `Byte;
-//    wire store_half = AccessType == `Half;
-//    wire store_word = AccessType == `Word;
-//    wire store = store_byte || store_half || store_word;
-//
-//    BE u_be(
-//        .data_w_in(WriteData),
-//        .addr_low(VAddr[1:0]),
-//        .write_type(AccessType),
-//        .data_w_out(byteened_data),
-//        .data_w_byteen(byteen_out)
-//    );
-//    
-//    wire excWriteAlign = (store_word && |VAddr[1:0]) || (store_half && VAddr[0]);
-//    wire excWriteBound = store &&
-//                         !(
-//                            (VAddr >= `DM_LOW_BOUND  && VAddr <= `DM_HIGH_BOUND)  ||
-//                            (Vaddr >= `TC0_LOW_BOUND && VAddr <= `TC0_ALLOW_HIGH) ||
-//                            (Vaddr >= `TC1_LOW_BOUND && VAddr <= `TC1_ALLOW_HIGH) ||
-//                            (VAddr >= `RESPONSE_LOW  && VAddr <= `RESPONSE_HIGH)
-//                          );
-//    wire excLoadAlign  = (load_word  && |VAddr[1:0]) || (load_half  && VAddr[0]);
-//    wire excLoadBound = load &&
-//                        !(
-//                           (VAddr >= `DM_LOW_BOUND  && VAddr <= `DM_HIGH_BOUND)  ||
-//                           (Vaddr >= `TC0_LOW_BOUND && VAddr <= `TC0_HIGH_BOUND) ||
-//                           (Vaddr >= `TC1_LOW_BOUND && VAddr <= `TC1_HIGH_BOUND) ||
-//                           (VAddr >= `RESPONSE_LOW  && VAddr <= `RESPONSE_HIGH)
-//                         );
-//
-//    wire ExcAdEL = excLoadAlign  || excLoadBound  || (load  && ExcOv);
-//    wire ExcAdES = excWriteAlign || excWriteBound || (write && ExcOv);
-//
-//    // TODO: lb, lh, sb, sh to int_addr!!!
-//    
-//    assign DmAddrOut = (VAddr >= `DM_LOW_BOUND  && VAddr <= `DM_HIGH_BOUND) ? VAddr : 32'h0000_0000;
-//    assign IntAddrOut = `RESPONSE_LOW;
-//    assign TC0AddrOut = (Vaddr >= `TC0_LOW_BOUND && VAddr <= `TC0_HIGH_BOUND) ? VAddr : `TC0_LOW_BOUND;
-//    assign TC1AddrOut = (Vaddr >= `TC1_LOW_BOUND && VAddr <= `TC1_HIGH_BOUND) ? VAddr : `TC1_LOW_BOUND;
-//    
-//    assign DmByteenOut  = (!ExcAdES && (VAddr >= `DM_LOW_BOUND  && VAddr <= `DM_HIGH_BOUND)) ? byteen_out : 4'b0;
-//    assign IntByteenOut = (!ExcAdES && (VAddr >= `RESPONSE_LOW  && VAddr <= `RESPONSE_HIGH)) ? byteen_out : 4'b0;
-//    assign TC0We = (!ExcAdES && (Vaddr >= `TC0_LOW_BOUND && VAddr <= `TC0_ALLOW_HIGH) && write);
-//    assign TC1We = (!ExcAdES && (Vaddr >= `TC1_LOW_BOUND && VAddr <= `TC1_ALLOW_HIGH) && write);
-//
-//    assign WriteDataOut = 
 
 endmodule
