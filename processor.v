@@ -1,5 +1,6 @@
 `timescale 1ns / 1ps
 `include "Constants.v"
+`include "Exc_Consts.v"
 
 module Processor(
     input clk,
@@ -18,7 +19,7 @@ module Processor(
     output [31:0] w_inst_addr
 );
     
-    wire stall;
+    wire stall, req;
     
     StallCtrl u_stall(
         .Type$E(type$E),
@@ -37,9 +38,10 @@ module Processor(
     );
     
     wire [31:0] EPC;
-    wire req;
     wire eret$D;
     wire ExcAdEL$F;
+    
+    wire [ 4:0] ExcCode$F = ExcAdEL$F ? `EXC_AdEL : `EXC_None;
 
     wire [31:0] instruction = i_inst_rdata;
     wire [31:0] pc, pc8;
@@ -72,11 +74,13 @@ module Processor(
     wire inst_in_bd$D;
     wire Stall$D = stall;
     wire Clear$D = reset;
+    wire [ 4:0] ExcCode$F$D;
     
     PReg u_instr$D (clk, Stall$D, Clear$D, instruction, instruction$D);
     PReg u_PC$D    (clk, Stall$D, Clear$D, pc, PC$D);
     PReg u_PC8$D   (clk, Stall$D, Clear$D, pc8, PC8$D);
     PReg #(.Width(1)) u_bd$D (clk, Stall$D, Clear$D, inst_in_bd$F, inst_in_bd$D);
+    PReg #(.Width(5)) u_exccode$D (clk, Stall$D, Clear$D, ExcCode$F, ExcCode$F$D);
     /*** ^^^ D Stage Registers ^^^ ***/
     
     wire [5:0]  opcode, func;
@@ -107,8 +111,12 @@ module Processor(
     wire [3:0] MDType;
     wire MduStart, MduBusy, MduHiLo;
     
-    wire ExcRI$D, ExcSyscall$D;
+    wire ExcRI$D, ExcSyscall$D, cop0_wr$D;
     wire AllowExcOv$D, AllowExcDm$D;
+    
+    wire [ 4:0] ExcCode$D = ExcCode$F$D != `EXC_None ? ExcCode$F$D :
+                            ExcRI$D ? `EXC_RI :
+                            ExcSyscall$D ? `EXC_Syscall : `EXC_None;
     
     Controller u_ctrl(
         .opCode(opcode),
@@ -133,6 +141,7 @@ module Processor(
         .ExcRI(ExcRI$D),
         .ExcSyscall(ExcSyscall$D),
         .isEret(eret$D),
+        .CP0Wr(cop0_wr$D),
         .AllowExcOv(AllowExcOv$D),
         .AllowExcDm(AllowExcDm$D),
         .NeedBd(inst_in_bd$F)
@@ -215,6 +224,9 @@ module Processor(
     wire [1:0] RegWriteSrc$E;
     // wire [15:0] I16$E;
     
+    wire [ 4:0] ExcCode$D$E;
+    wire inst_in_bd$E, eret$E, cop0_wr$E;
+    
     wire AllowExcOv$E, AllowExcDm$E;
     
     wire [1:0] type$E;
@@ -246,6 +258,10 @@ module Processor(
     PReg #(.Width(2)) u_type$E (clk, Stall$E, Clear$E, type, type$E);
     PReg #(.Width(1)) u_allow_ov$E(clk, Stall$E, Clear$E, AllowExcOv$D, AllowExcOv$E);
     PReg #(.Width(1)) u_allow_dm$E(clk, Stall$E, Clear$E, AllowExcDm$D, AllowExcDm$E);
+    PReg #(.Width(5)) u_exccode$E (clk, Stall$E, Clear$E, ExcCode$D, ExcCode$D$E);
+    PReg #(.Width(1)) u_inst_bd$E (clk, Stall$E, Clear$E, inst_in_bd$D, inst_in_bd$E);
+    PReg #(.Width(1)) u_eret$E (clk, Stall$E, Clear$E, eret$D, eret$E);
+    PReg #(.Width(1)) u_cop0_wr$E (clk, Stall$E, Clear$E, cop0_wr$D, cop0_wr$E);
     /*** ^^^ E Stage Registers ^^^ ***/
 
     wire        AluZero;
@@ -265,7 +281,7 @@ module Processor(
                       V2$E;
     /*** ^^^ Forward: E Stage ^^^ ***/
     
-    wire ExcOv$E, ExcDm$E;
+    wire ExcOv$E, ExcDm$E, ExcAdEL$E, ExcAdES$E;
     
     MUX32_2 u_mux_alu_a(
         .Sel(AluASel$E),
@@ -304,6 +320,19 @@ module Processor(
         .MDOut(MDOut)
     );
     
+    DmExcDetector u_dmexc(
+        .ExcFromAlu(ExcDm$E),
+        .DmAccessType(DmAcessType$E),
+        .DmAddress(AluC),
+        .ExcAdEL(ExcAdEL$E),
+        .ExcAdES(ExcAdES$E)
+    );
+    
+    wire [ 4:0] ExcCode$E = ExcCode$D$E != `EXC_None ? ExcCode$D$E:
+                            ExcOv$E ? `EXC_Ov :
+                            ExcAdEL$E ? `EXC_AdEL :
+                            ExcAdES$E ? `EXC_AdES : `EXC_None;
+    
     /*** vvv M Stage Registers vvv ***/
     wire [31:0] AO$M, V2$M;
     wire [4:0]  A3$M, A2$M;
@@ -317,6 +346,9 @@ module Processor(
     wire Stall$M = 1'b0;
     wire Clear$M = reset;
     
+    wire [ 4:0] ExcCode$E$M;
+    wire inst_in_bd$M, eret$M;
+    
     PReg u_ao$M (clk, Stall$M, Clear$M, AluC, AO$M);
     PReg #(.Width(5)) u_a3$M (clk, Stall$M, Clear$M, A3$E, A3$M);
     PReg u_v2$M (clk, Stall$M, Clear$M, V2$E$FWD, V2$M);
@@ -329,14 +361,37 @@ module Processor(
     PReg #(.Width(1)) u_rfwe$M (clk, Stall$M, Clear$M, RegWriteEn$E, RegWriteEn$M);
     PReg #(.Width(2)) u_rfws$M (clk, Stall$M, Clear$M, RegWriteSrc$E, RegWriteSrc$M);
     PReg #(.Width(2)) u_type$M (clk, Stall$M, Clear$M, type$E, type$M);
+    PReg #(.Width(5)) u_exccode$M (clk, Stall$M, Clear$M, ExcCode$E, ExcCode$E$M);
+    PReg #(.Width(1)) u_inst_bd$M (clk, Stall$M, Clear$M, inst_in_bd$E, inst_in_bd$M);
+    PReg #(.Width(1)) u_eret$M (clk, Stall$M, Clear$M, eret$E, eret$M);
+    PReg #(.Width(1)) u_cop0_wr$M (clk, Stall$M, Clear$M, cop0_wr$E, cop0_wr$M);
     /*** ^^^ M Stage Registers ^^^ ***/
     
-    wire [31:0] DmAddr, DmRD, DmWD, DmWD$FWD;
+    wire [31:0] DmAddr, DmRD, DmWD, DmWD$FWD, COP0_Out;
 
     assign DmAddr = AO$M;
     assign DmWD = V2$M;
    
     assign DmWD$FWD = (A2$M == A3$W && A3$W && RegWriteEn$W) ? WD$_W : DmWD;
+    
+    CP0 u_cp0(
+        .clk(clk),
+        .rst(reset),
+        .A1(A3$M),
+        .A2(A3$M),
+        .DIn(DmWD$FWD),
+        .PC(PC$M),
+        .ExcInBd(inst_in_bd$M),
+        .ExcCode(ExcCode$E$M),
+        .HWInt(HWInt),
+        .We(cop0_wr$M),
+        // .EXLSet(),
+        .EXLClr(eret$M),
+        .IntReq(req),
+        .EPCOut(EPC),
+        .DOut(COP0_Out)
+    );
+    
     
     /*** vvv Data Memory vvv ***/
     
@@ -362,7 +417,7 @@ module Processor(
     /*** vvv W Stage Registers vvv ***/
     wire [31:0] AO$W, DR$W;
     wire [4:0]  A3$W;
-    wire [31:0] PC$W, PC8$W, MDO$W;
+    wire [31:0] PC$W, PC8$W, MDO$W, COP0$W;
     
     wire Stall$W = 1'b0;
     wire Clear$W = reset;
@@ -378,6 +433,7 @@ module Processor(
     PReg u_mdo$W (clk, Stall$W, Clear$W, MDO$M, MDO$W);
     PReg #(.Width(1)) u_rfwe$W (clk, Stall$W, Clear$W, RegWriteEn$M, RegWriteEn$W);
     PReg #(.Width(2)) u_rfws$W (clk, Stall$W, Clear$W, RegWriteSrc$M, RegWriteSrc$W);
+    PReg u_cop0  (clk, Stall$W, Clear$W, COP0_Out, COP0$W);
     /*** ^^^ W Stage Registers ^^^ ***/
 
     wire [31:0] WD$_W;
@@ -390,5 +446,6 @@ module Processor(
         .DI_11(MDO$W),
         .DO(WD$_W)
     );
+    // TODO: mfc0!!!
 
 endmodule

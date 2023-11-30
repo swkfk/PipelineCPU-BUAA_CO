@@ -23,6 +23,7 @@ module Controller(
     output [3:0]  MDUType,
     output ExcRI,
     output ExcSyscall,
+    output CP0Wr,
     output isEret,
     output AllowExcOv,
     output AllowExcDm,
@@ -90,6 +91,7 @@ module Controller(
     assign mfc0 = COP0 && cop0_code == `MFC0;
     assign syscall = special && func == `SYSCALL;
     assign isEret = eret;
+    assign CP0Wr = mtc0;
     
     assign AllowExcOv = add | addi | sub;
     assign AllowExcDm = load | store;

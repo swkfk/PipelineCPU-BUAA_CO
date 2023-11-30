@@ -7,5 +7,6 @@
 `define EXC_Syscall 5'd8
 `define EXC_RI   5'd10
 `define EXC_Ov   5'd12
+`define EXC_None 5'b11111
 
 `endif

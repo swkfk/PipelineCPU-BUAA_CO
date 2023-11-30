@@ -13,7 +13,7 @@ module CP0(
     input [6:2] ExcCode,  // interruption/exception type
     input [7:2] HWInt,  // Device interruption
     input We,          // write enable
-    input EXLSet,      // set EXL to 1
+    // input EXLSet,      // set EXL to 1
     input EXLClr,      // reset EXL to 0
     output IntReq,
     output [31:2] EPCout,
