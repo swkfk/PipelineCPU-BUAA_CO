@@ -73,7 +73,7 @@ module Processor(
     wire [31:0] PC$D, PC8$D;
     wire inst_in_bd$D;
     wire Stall$D = stall;
-    wire Clear$D = reset;
+    wire Clear$D = reset || req;
     wire [ 4:0] ExcCode$F$D;
     
     PReg u_instr$D (clk, Stall$D, Clear$D, instruction, instruction$D);
@@ -234,7 +234,7 @@ module Processor(
     wire [2:0] DmAcessType$E;
     
     wire Stall$E = 1'b0;
-    wire Clear$E = stall || reset;
+    wire Clear$E = stall || reset || req;
     
     PReg u_v1$E  (clk, Stall$E, Clear$E, RegRD1$FWD, V1$E);
     PReg u_v2$E  (clk, Stall$E, Clear$E, RegRD2$FWD, V2$E);
@@ -344,7 +344,7 @@ module Processor(
     wire [1:0] type$M;
     
     wire Stall$M = 1'b0;
-    wire Clear$M = reset;
+    wire Clear$M = reset || req;
     
     wire [ 4:0] ExcCode$E$M;
     wire inst_in_bd$M, eret$M;
@@ -420,7 +420,7 @@ module Processor(
     wire [31:0] PC$W, PC8$W, MDO$W, COP0$W;
     
     wire Stall$W = 1'b0;
-    wire Clear$W = reset;
+    wire Clear$W = reset || req;
     
     wire RegWriteEn$W;
     wire [1:0] RegWriteSrc$W;
