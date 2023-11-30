@@ -111,7 +111,7 @@ module Processor(
     wire [3:0] MDType;
     wire MduStart, MduBusy, MduHiLo;
     
-    wire ExcRI$D, ExcSyscall$D, cop0_wr$D;
+    wire ExcRI$D, ExcSyscall$D, cop0_wr$D, FromCP0$D;
     wire AllowExcOv$D, AllowExcDm$D;
     
     wire [ 4:0] ExcCode$D = ExcCode$F$D != `EXC_None ? ExcCode$F$D :
@@ -144,7 +144,8 @@ module Processor(
         .CP0Wr(cop0_wr$D),
         .AllowExcOv(AllowExcOv$D),
         .AllowExcDm(AllowExcDm$D),
-        .NeedBd(inst_in_bd$F)
+        .NeedBd(inst_in_bd$F),
+        .FromCP0(FromCP0$D)
     );
 
     assign MduHiLo = MDType == `MDU_MFHI || MDType == `MDU_MFLO || MDType == `MDU_MTHI || MDType == `MDU_MTLO;
@@ -225,7 +226,7 @@ module Processor(
     // wire [15:0] I16$E;
     
     wire [ 4:0] ExcCode$D$E;
-    wire inst_in_bd$E, eret$E, cop0_wr$E;
+    wire inst_in_bd$E, eret$E, cop0_wr$E, FromCP0$E;
     
     wire AllowExcOv$E, AllowExcDm$E;
     
@@ -262,6 +263,7 @@ module Processor(
     PReg #(.Width(1)) u_inst_bd$E (clk, Stall$E, Clear$E, inst_in_bd$D, inst_in_bd$E);
     PReg #(.Width(1)) u_eret$E (clk, Stall$E, Clear$E, eret$D, eret$E);
     PReg #(.Width(1)) u_cop0_wr$E (clk, Stall$E, Clear$E, cop0_wr$D, cop0_wr$E);
+    PReg #(.Width(1)) u_from_cp0$E (clk, Stall$E, Clear$E, FromCP0$D, FromCP0$E);
     /*** ^^^ E Stage Registers ^^^ ***/
 
     wire        AluZero;
@@ -347,7 +349,7 @@ module Processor(
     wire Clear$M = reset || req;
     
     wire [ 4:0] ExcCode$E$M;
-    wire inst_in_bd$M, eret$M;
+    wire inst_in_bd$M, eret$M, FromCP0$M;
     
     PReg u_ao$M (clk, Stall$M, Clear$M, AluC, AO$M);
     PReg #(.Width(5)) u_a3$M (clk, Stall$M, Clear$M, A3$E, A3$M);
@@ -365,6 +367,7 @@ module Processor(
     PReg #(.Width(1)) u_inst_bd$M (clk, Stall$M, Clear$M, inst_in_bd$E, inst_in_bd$M);
     PReg #(.Width(1)) u_eret$M (clk, Stall$M, Clear$M, eret$E, eret$M);
     PReg #(.Width(1)) u_cop0_wr$M (clk, Stall$M, Clear$M, cop0_wr$E, cop0_wr$M);
+    PReg #(.Width(1)) u_from_cp0$M (clk, Stall$E, Clear$E, FromCP0$E, FromCP0$M);
     /*** ^^^ M Stage Registers ^^^ ***/
     
     wire [31:0] DmAddr, DmRD, DmWD, DmWD$FWD, COP0_Out;
@@ -420,6 +423,8 @@ module Processor(
     wire [4:0]  A3$W;
     wire [31:0] PC$W, PC8$W, MDO$W, COP0$W;
     
+    wire FromCP0$W;
+    
     wire Stall$W = 1'b0;
     wire Clear$W = reset || req;
     
@@ -435,9 +440,10 @@ module Processor(
     PReg #(.Width(1)) u_rfwe$W (clk, Stall$W, Clear$W, RegWriteEn$M, RegWriteEn$W);
     PReg #(.Width(2)) u_rfws$W (clk, Stall$W, Clear$W, RegWriteSrc$M, RegWriteSrc$W);
     PReg u_cop0  (clk, Stall$W, Clear$W, COP0_Out, COP0$W);
+    PReg #(.Width(1)) u_from_cp0$W (clk, Stall$E, Clear$E, FromCP0$M, FromCP0$W);
     /*** ^^^ W Stage Registers ^^^ ***/
 
-    wire [31:0] WD$_W;
+    wire [31:0] WD$_W, TMP_WD$_W;
 
     MUX32_4 u_mux_regwrite_src(
         .Sel(RegWriteSrc$W),
@@ -445,8 +451,14 @@ module Processor(
         .DI_01(DR$W),
         .DI_10(PC8$W),
         .DI_11(MDO$W),
+        .DO(TMP_WD$_W)
+    );
+
+    MUX32_2 u_mux_regwrite_level2_src(
+        .Sel(FromCP0$W),
+        .DI_0(TMP_WD$_W),
+        .DI_1(COP0$W),
         .DO(WD$_W)
     );
-    // TODO: mfc0!!!
 
 endmodule

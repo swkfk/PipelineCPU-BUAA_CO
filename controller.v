@@ -27,7 +27,8 @@ module Controller(
     output isEret,
     output AllowExcOv,
     output AllowExcDm,
-    output NeedBd
+    output NeedBd,
+    output FromCP0
     );
 
     wire add, sub, _and, _or, slt, sltu, lui;
@@ -92,6 +93,7 @@ module Controller(
     assign syscall = special && func == `SYSCALL;
     assign isEret = eret;
     assign CP0Wr = mtc0;
+    assign FromCP0 = mfc0;
     
     assign AllowExcOv = add | addi | sub;
     assign AllowExcDm = load | store;
@@ -119,6 +121,7 @@ module Controller(
                      mthi  ? `MDU_MTHI :
                      mtlo  ? `MDU_MTLO :
                      4'b0000;
+    // TODO: Tuse and Tnew for mfc0/mfc0 !!!
     assign TuseRS = (calc_ri | calc_rr | lui | load | store | md | mt) ? 3'd1 :
                     (beq | jr | bne) ? 3'd0 :
                     3'd3;
