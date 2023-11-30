@@ -6,7 +6,8 @@ module BE(
     input [1:0] addr_low,
     input [2:0] write_type,
     output [31:0] data_w_out,
-    output [3:0] data_w_byteen
+    output [3:0] data_w_byteen,
+    input req
     );
     
     reg [31:0] r_data_w_out;
@@ -51,7 +52,7 @@ module BE(
         end
     end
     
-    assign data_w_byteen = r_data_w_byteen;
+    assign data_w_byteen = r_data_w_byteen & {4{~req}};
     assign data_w_out = r_data_w_out;
 
 endmodule

@@ -400,7 +400,8 @@ module Processor(
         .addr_low(DmAddr[1:0]),
         .write_type(DmAccessType$M),
         .data_w_out(m_data_wdata),
-        .data_w_byteen(m_data_byteen)
+        .data_w_byteen(m_data_byteen),
+        .req(req)
     );
     
     DmRDExt u_data_extender(
