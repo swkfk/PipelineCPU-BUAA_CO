@@ -15,8 +15,8 @@ module CP0(
     input We,          // write enable
     // input EXLSet,      // set EXL to 1
     input EXLClr,      // reset EXL to 0
-    output IntReq,
-    output [31:2] EPCout,
+    output Req,
+    output [31:0] EPCout,
     output [31:0] DOut
     );
 
@@ -31,6 +31,7 @@ module CP0(
     
     wire IntReq = (|(HWInt & IM)) & IE & !EXL;
     wire ExcReq = (|ExcCode) & !EXL;
+    assign Req = IntReq || ExcReq;
     wire [31:2] AcceptPC = ExcInBd ? (PC[31:2] - 1) : PC[31:2];
 
     always @(posedge clk or posedge rst) begin
@@ -63,7 +64,7 @@ module CP0(
         end
     end
     
-    assign EPCOut = EPC;
+    assign EPCOut = {EPC, 2'b0};
     assign DOut = (A1 == `RegSR)    ? SR    :
                   (A1 == `RegCause) ? Cause :
                   (A1 == `RegEPC)   ? EPC   :

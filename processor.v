@@ -387,8 +387,8 @@ module Processor(
         .We(cop0_wr$M),
         // .EXLSet(),
         .EXLClr(eret$M),
-        .IntReq(req),
-        .EPCOut(EPC),
+        .Req(req),
+        .EPCout(EPC),
         .DOut(COP0_Out)
     );
     
