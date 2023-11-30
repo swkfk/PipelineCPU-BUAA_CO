@@ -97,7 +97,7 @@ module Controller(
     assign AllowExcDm = load | store;
     assign NeedBd = beq | bne | jal | jr;
     
-    assign ExcRI = !(add | sub | _and | _or | slt | sltu | lui |
+    assign ExcRI = !(add | sub | _and | _or | slt | sltu | lui | sll |
                      addi | andi | ori | lb | lh | lw | sb | sh | sw |
                      mult | multu | div | divu | mfhi | mflo | mthi | mtlo |
                      beq | bne | jal | jr | eret | syscall | mtc0 | mfc0);
