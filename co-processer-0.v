@@ -34,7 +34,7 @@ module CP0(
     assign Req = IntReq || ExcReq;
     wire [31:2] AcceptPC = ExcInBd ? (PC[31:2] - 1) : PC[31:2];
 
-    always @(posedge clk or posedge rst) begin
+    always @(posedge clk) begin
         if (rst) begin
             SR <= 32'b0;
             Cause <= 32'b0;
@@ -56,7 +56,7 @@ module CP0(
                 else
                     SR <= SR;
                 if (A2 == `RegEPC)
-                    EPC <= DIn;
+                    EPC <= DIn[31:2];
                 else
                     EPC <= EPC;
             end
@@ -64,10 +64,10 @@ module CP0(
         end
     end
     
-    assign EPCOut = {EPC, 2'b0};
+    assign EPCout = {EPC, 2'b0};
     assign DOut = (A1 == `RegSR)    ? SR    :
                   (A1 == `RegCause) ? Cause :
-                  (A1 == `RegEPC)   ? EPC   :
+                  (A1 == `RegEPC)   ? {EPC, 2'b0} :
                   (A1 == `RegPrID)  ? PrID  :
                   32'b0;
 

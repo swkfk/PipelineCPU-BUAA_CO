@@ -217,7 +217,7 @@ module Processor(
     
     /*** vvv E Stage Registers vvv ***/
     wire [31:0] V1$E, V2$E, E32$E, S32$E;  // S32: Shamt 32
-    wire [4:0]  A1$E, A2$E, A3$E;
+    wire [4:0]  A1$E, A2$E, A3$E, rd$E;
     wire [31:0] PC$E, PC8$E, MDO$E;
     
     wire AluASel$E, AluBSel$E, DmWriteEn$E, MduStart$E;
@@ -244,6 +244,7 @@ module Processor(
     PReg #(.Width(5)) u_a1$E (clk, Stall$E, Clear$E, RegRA1, A1$E);
     PReg #(.Width(5)) u_a2$E (clk, Stall$E, Clear$E, RegRA2, A2$E);
     PReg #(.Width(5)) u_a3$E (clk, Stall$E, Clear$E, RegWA, A3$E);
+    PReg #(.Width(5)) u_rd$E (clk, Stall$E, Clear$E, rd, rd$E);
     PReg u_pc$E  (clk, Stall$E, Clear$E, PC$D,  PC$E);
     PReg u_pc8$E (clk, Stall$E, Clear$E, PC8$D, PC8$E);
     // PReg #(.Width(16)) u_i16$E (clk, Stall$E, Clear$E, imm16, I16$E);
@@ -337,7 +338,7 @@ module Processor(
     
     /*** vvv M Stage Registers vvv ***/
     wire [31:0] AO$M, V2$M;
-    wire [4:0]  A3$M, A2$M;
+    wire [4:0]  A3$M, A2$M, rd$M;
     wire [31:0] PC$M, PC8$M, MDO$M;
     
     wire DmWriteEn$M, RegWriteEn$M;
@@ -355,6 +356,7 @@ module Processor(
     PReg #(.Width(5)) u_a3$M (clk, Stall$M, Clear$M, A3$E, A3$M);
     PReg u_v2$M (clk, Stall$M, Clear$M, V2$E$FWD, V2$M);
     PReg #(.Width(5)) u_a2$M (clk, Stall$M, Clear$M, A2$E, A2$M);
+    PReg #(.Width(5)) u_rd$M (clk, Stall$M, Clear$M, rd$E, rd$M);
     PReg u_pc$M  (clk, Stall$M, Clear$M, PC$E,  PC$M);
     PReg u_pc8$M (clk, Stall$M, Clear$M, PC8$E, PC8$M);
     PReg u_mdo$M (clk, Stall$M, Clear$M, MDOut, MDO$M);
@@ -380,8 +382,8 @@ module Processor(
     CP0 u_cp0(
         .clk(clk),
         .rst(reset),
-        .A1(A3$M),
-        .A2(A3$M),
+        .A1(rd$M),
+        .A2(rd$M),
         .DIn(DmWD$FWD),
         .PC(PC$M),
         .ExcInBd(inst_in_bd$M),

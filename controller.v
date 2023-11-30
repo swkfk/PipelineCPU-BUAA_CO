@@ -109,7 +109,7 @@ module Controller(
                    bne ? `Br_BNE :
                    3'b000;
     assign InstrType = (calc_rr | calc_ri | lui | sll | mf) ? `CalcType : 
-                       (load) ? `LoadType :
+                       (load | mfc0) ? `LoadType :
                        (beq | jr | bne) ? `JumpType :
                        2'b0;
     assign MDUType = mult  ? `MDU_MULT :
@@ -121,16 +121,16 @@ module Controller(
                      mthi  ? `MDU_MTHI :
                      mtlo  ? `MDU_MTLO :
                      4'b0000;
-    // TODO: Tuse and Tnew for mfc0/mfc0 !!!
+
     assign TuseRS = (calc_ri | calc_rr | lui | load | store | md | mt) ? 3'd1 :
                     (beq | jr | bne) ? 3'd0 :
                     3'd3;
     assign TuseRT = (calc_rr | sll | md) ? 3'd1 :
                     (beq | bne) ? 3'd0 :
-                    (store)  ? 3'd2 :
+                    (store | mtc0)  ? 3'd2 :
                     3'd3;
 
-    assign RegWriteEn = (calc_rr | calc_ri | lui | sll | load | jal | mfhi | mflo);
+    assign RegWriteEn = (calc_rr | calc_ri | lui | sll | load | jal | mfhi | mflo | mfc0);
     assign RegWriteSrc[0] = (load | mfhi | mflo);
     assign RegWriteSrc[1] = (jal | mfhi | mflo);
     assign RegWriteSel[0] = (calc_rr | sll | mfhi | mflo);
