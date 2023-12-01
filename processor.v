@@ -245,7 +245,7 @@ module Processor(
     PReg #(.Width(5)) u_a2$E (clk, Stall$E, Clear$E, RegRA2, A2$E);
     PReg #(.Width(5)) u_a3$E (clk, Stall$E, Clear$E, RegWA, A3$E);
     PReg #(.Width(5)) u_rd$E (clk, Stall$E, Clear$E, rd, rd$E);
-    PRegPC u_pc$E  (clk, Stall$E, Clear$E, req, PC$D,  PC$E);
+    PRegPC u_pc$E  (clk, Stall$E, reset || req, req, PC$D,  PC$E);  // Special Twice!!!
     PReg u_pc8$E (clk, Stall$E, Clear$E, PC8$D, PC8$E);
     // PReg #(.Width(16)) u_i16$E (clk, Stall$E, Clear$E, imm16, I16$E);
     PReg #(.Width(1)) u_aluasel$E (clk, Stall$E, Clear$E, AluASel, AluASel$E);
