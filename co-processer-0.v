@@ -47,6 +47,7 @@ module CP0(
             end
             else if (IntReq || ExcReq) begin  // interruption or exception occurred
                 Cause[6:2] <= IntReq ? 5'b0 : ExcCode;
+                Cause[31]  <= ExcInBd;
                 SR[1] <= 1'b1;
                 EPC <= (IntReq || ExcReq) ? AcceptPC : EPC;
             end
