@@ -1,6 +1,7 @@
 `timescale 1ns / 1ps
 `include "Constants.v"
 `include "Exc_Consts.v"
+`include "CP0_Consts.v"
 
 module Processor(
     input clk,
@@ -34,7 +35,10 @@ module Processor(
         .TuseRT(TuseRT),
         .stall(stall),
         .mdu_busy(MduBusy || MduStart$E),
-        .hilo(MduHiLo)
+        .hilo(MduHiLo),
+        .eret$D(eret$D),
+        .mt_epc$E(cop0_wr$E && rd$E == `RegEPC),
+        .mt_epc$M(cop0_wr$M && rd$M == `RegEPC)
     );
     
     wire [31:0] EPC;
@@ -350,7 +354,7 @@ module Processor(
     wire Clear$M = reset || req;
     
     wire [ 4:0] ExcCode$E$M;
-    wire inst_in_bd$M, eret$M, FromCP0$M;
+    wire inst_in_bd$M, eret$M, FromCP0$M, cop0_wr$M;
     
     PReg u_ao$M (clk, Stall$M, Clear$M, AluC, AO$M);
     PReg #(.Width(5)) u_a3$M (clk, Stall$M, Clear$M, A3$E, A3$M);

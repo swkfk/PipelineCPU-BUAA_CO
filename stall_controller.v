@@ -14,7 +14,10 @@ module StallCtrl(
     input [2:0] TuseRT,
     output stall,
     input mdu_busy,  // busy signal is high or start signal is @E
-    input hilo  // mfhi or mflo
+    input hilo,  // mfhi or mflo
+    input eret$D,
+    input mt_epc$E,
+    input mt_epc$M
     );
  
     wire [2:0] Tnew$E = Type$E == `LoadType ? 3'd2 :
@@ -29,7 +32,8 @@ module StallCtrl(
     wire stall_rt$M = (TuseRT < Tnew$M) && (WE$M) && (A2$D == A3$M) && A3$M;
     
     wire stall_mdu = mdu_busy && hilo;
+    wire stall_eret = eret$D && (mt_epc$E || mt_epc$M);
     
-    assign stall = stall_rs$E | stall_rs$M | stall_rt$E | stall_rt$M | stall_mdu;
+    assign stall = stall_rs$E | stall_rs$M | stall_rt$E | stall_rt$M | stall_mdu | stall_eret;
 
 endmodule
