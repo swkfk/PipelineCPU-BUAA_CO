@@ -77,7 +77,7 @@ module Processor(
     wire [ 4:0] ExcCode$F$D;
     
     PReg u_instr$D (clk, Stall$D, Clear$D, instruction, instruction$D);
-    PReg u_PC$D    (clk, Stall$D, Clear$D, pc, PC$D);
+    PRegPC u_PC$D    (clk, Stall$D, Clear$D, req, pc, PC$D);
     PReg u_PC8$D   (clk, Stall$D, Clear$D, pc8, PC8$D);
     PReg #(.Width(1)) u_bd$D (clk, Stall$D, Clear$D, inst_in_bd$F, inst_in_bd$D);
     PReg #(.Width(5)) u_exccode$D (clk, Stall$D, Clear$D, ExcCode$F, ExcCode$F$D);
@@ -245,7 +245,7 @@ module Processor(
     PReg #(.Width(5)) u_a2$E (clk, Stall$E, Clear$E, RegRA2, A2$E);
     PReg #(.Width(5)) u_a3$E (clk, Stall$E, Clear$E, RegWA, A3$E);
     PReg #(.Width(5)) u_rd$E (clk, Stall$E, Clear$E, rd, rd$E);
-    PReg u_pc$E  (clk, Stall$E, Clear$E, PC$D,  PC$E);
+    PRegPC u_pc$E  (clk, Stall$E, Clear$E, req, PC$D,  PC$E);
     PReg u_pc8$E (clk, Stall$E, Clear$E, PC8$D, PC8$E);
     // PReg #(.Width(16)) u_i16$E (clk, Stall$E, Clear$E, imm16, I16$E);
     PReg #(.Width(1)) u_aluasel$E (clk, Stall$E, Clear$E, AluASel, AluASel$E);
@@ -357,7 +357,7 @@ module Processor(
     PReg u_v2$M (clk, Stall$M, Clear$M, V2$E$FWD, V2$M);
     PReg #(.Width(5)) u_a2$M (clk, Stall$M, Clear$M, A2$E, A2$M);
     PReg #(.Width(5)) u_rd$M (clk, Stall$M, Clear$M, rd$E, rd$M);
-    PReg u_pc$M  (clk, Stall$M, Clear$M, PC$E,  PC$M);
+    PRegPC u_pc$M  (clk, Stall$M, Clear$M, req, PC$E,  PC$M);
     PReg u_pc8$M (clk, Stall$M, Clear$M, PC8$E, PC8$M);
     PReg u_mdo$M (clk, Stall$M, Clear$M, MDOut, MDO$M);
     PReg #(.Width(1)) u_dmwe$M (clk, Stall$M, Clear$M, DmWriteEn$E, DmWriteEn$M);
