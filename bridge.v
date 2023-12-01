@@ -13,7 +13,7 @@ module Bridge(
     output [31: 0] m_addr,
     input  [31: 0] m_rdata,
     output [31: 0] m_wdata,
-    output [31: 0] m_byteen,
+    output [ 3: 0] m_byteen,
     output [31: 0] m_pc,
     // For TC0 & TC1
     output [31: 2] tc0_addr,
