@@ -47,7 +47,7 @@ module IFU(
     );
     
     assign NPC_Final = req  ? 32'h0000_4180 : 
-                       eret ? EPC :
+                       eret ? EPC + 4:
                        NPC;
 
 endmodule
