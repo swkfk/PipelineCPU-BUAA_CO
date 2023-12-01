@@ -35,7 +35,7 @@ module IFU(
     assign PC4 = PC + 32'h4;
     assign PC8 = PC + 32'h8;
     
-    assign ExcAdEL = !eret && ((|PC[1:0]) || (PC < 32'h0000_0000) || (PC > 32'h0000_6ffc));
+    assign ExcAdEL = !eret && ((|PC[1:0]) || (PC < 32'h0000_3000) || (PC > 32'h0000_6ffc));
 
     MUX32_4 u_mux_32_4(
         .Sel(npcOp),
