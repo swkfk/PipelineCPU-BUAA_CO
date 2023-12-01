@@ -48,7 +48,7 @@ module Bridge(
     assign tc1_wdata = p_wdata;
     
     assign int_addr   = p_addr;
-    assign int_byteen = _dm ? p_byteen : 4'b0000;
+    assign int_byteen = _int ? p_byteen : 4'b0000;
     
     // Read Data from outers to the processor
     assign p_rdata = _dm  ? m_rdata   :
