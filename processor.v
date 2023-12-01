@@ -447,7 +447,7 @@ module Processor(
     PReg #(.Width(1)) u_rfwe$W (clk, Stall$W, Clear$W, RegWriteEn$M, RegWriteEn$W);
     PReg #(.Width(2)) u_rfws$W (clk, Stall$W, Clear$W, RegWriteSrc$M, RegWriteSrc$W);
     PReg u_cop0  (clk, Stall$W, Clear$W, COP0_Out, COP0$W);
-    PReg #(.Width(1)) u_from_cp0$W (clk, Stall$E, Clear$E, FromCP0$M, FromCP0$W);
+    PReg #(.Width(1)) u_from_cp0$W (clk, Stall$W, Clear$W, FromCP0$M, FromCP0$W);
     /*** ^^^ W Stage Registers ^^^ ***/
 
     wire [31:0] WD$_W, TMP_WD$_W;

@@ -22,7 +22,7 @@ module CP0(
 
     reg [31:0] SR;
     reg [31:0] Cause;
-    reg [31:2] EPC, tempEPC;
+    reg [31:0] EPC, tempEPC;
     reg [31:0] PrID = `RegPrIDInit;
     
     wire [7:2] IM = SR[15:10];
@@ -32,13 +32,13 @@ module CP0(
     wire IntReq = (|(HWInt & IM)) & IE & !EXL;
     wire ExcReq = (|ExcCode) & !EXL;
     assign Req = IntReq || ExcReq;
-    wire [31:2] AcceptPC = ExcInBd ? (PC[31:2] - 1) : PC[31:2];
+    wire [31:0] AcceptPC = ExcInBd ? (PC - 4) : PC;
 
     always @(posedge clk) begin
         if (rst) begin
             SR <= 32'b0;
             Cause <= 32'b0;
-            EPC <= 30'b0;
+            EPC <= 32'b0;
             PrID <= `RegPrIDInit;
         end
         else begin
@@ -57,7 +57,7 @@ module CP0(
                 else
                     SR <= SR;
                 if (A2 == `RegEPC)
-                    EPC <= DIn[31:2];
+                    EPC <= DIn;
                 else
                     EPC <= EPC;
             end
@@ -65,10 +65,10 @@ module CP0(
         end
     end
     
-    assign EPCout = {EPC, 2'b0};
+    assign EPCout = EPC;
     assign DOut = (A1 == `RegSR)    ? SR    :
                   (A1 == `RegCause) ? Cause :
-                  (A1 == `RegEPC)   ? {EPC, 2'b0} :
+                  (A1 == `RegEPC)   ? EPC :
                   (A1 == `RegPrID)  ? PrID  :
                   32'b0;
 
