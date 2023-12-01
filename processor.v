@@ -320,6 +320,7 @@ module Processor(
         .clk(clk),
         .reset(reset),
         .start(MduStart$E),
+        .req(req),
         .RS(V1$E$FWD),
         .RT(V2$E$FWD),
         .MDType(MDType$E),

@@ -25,7 +25,7 @@ module IFU(
     always @(posedge clk) begin
         if (reset)
             PC_R <= `PC_START;
-        else if (En)
+        else if (En || req)
             PC_R <= NPC_Final;
         else
             PC_R <= PC_R;

@@ -5,6 +5,7 @@ module MDU(
     input clk,
     input reset,
     input start,
+    input req,
     input [31:0] RS,
     input [31:0] RT,
     input [3:0] MDType,
@@ -30,7 +31,7 @@ module MDU(
             LO <= 0;
             r_busy <= 0;
         end
-        else begin
+        else if (!req) begin
             if (start) begin
                 if (MDType == `MDU_MTHI) begin
                     HI <= RS;
