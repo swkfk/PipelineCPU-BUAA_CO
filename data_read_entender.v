@@ -14,9 +14,9 @@ module DmRDExt(
     assign data_read_out = 
             read_type == `WordRead ? data_read_in :
             read_type == `ByteSigned ? {{24{byte_read[7]}}, byte_read} :
-            read_type == `ByteUnsigned ? {24'b0, byte_read} :
+            // read_type == `ByteUnsigned ? {24'b0, byte_read} :
             read_type == `HalfSigned ? {{16{half_read[15]}}, half_read} :
-            read_type == `HalfUnsigned ? {16'b0, half_read} :
+            // read_type == `HalfUnsigned ? {16'b0, half_read} :
             data_read_in;
 
 endmodule

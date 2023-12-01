@@ -47,7 +47,7 @@ module Processor(
     
     wire [ 4:0] ExcCode$F = ExcAdEL$F ? `EXC_AdEL : `EXC_None;
 
-    wire [31:0] instruction = i_inst_rdata;
+    wire [31:0] instruction = ExcAdEL$F ? 32'b0 : i_inst_rdata;
     wire [31:0] pc, pc8;
     
     assign i_inst_addr = pc;

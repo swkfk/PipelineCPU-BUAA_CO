@@ -48,7 +48,7 @@ module mips(
 
     assign macroscopic_pc = pb_pc;  // M_PC
     assign m_data_addr = mb_addr;
-    assign m_data_rdata = mb_rdata;
+    assign mb_rdata = m_data_rdata;
     assign m_data_wdata = mb_wdata;
     assign m_data_byteen = mb_byteen;
     
