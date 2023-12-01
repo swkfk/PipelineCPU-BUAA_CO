@@ -374,7 +374,7 @@ module Processor(
     PReg #(.Width(1)) u_inst_bd$M (clk, Stall$M, Clear$M, inst_in_bd$E, inst_in_bd$M);
     PReg #(.Width(1)) u_eret$M (clk, Stall$M, Clear$M, eret$E, eret$M);
     PReg #(.Width(1)) u_cop0_wr$M (clk, Stall$M, Clear$M, cop0_wr$E, cop0_wr$M);
-    PReg #(.Width(1)) u_from_cp0$M (clk, Stall$E, Clear$E, FromCP0$E, FromCP0$M);
+    PReg #(.Width(1)) u_from_cp0$M (clk, Stall$M, Clear$M, FromCP0$E, FromCP0$M);
     /*** ^^^ M Stage Registers ^^^ ***/
     
     wire [31:0] DmAddr, DmRD, DmWD, DmWD$FWD, COP0_Out;
