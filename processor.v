@@ -265,7 +265,7 @@ module Processor(
     PReg #(.Width(1)) u_allow_ov$E(clk, Stall$E, Clear$E, AllowExcOv$D, AllowExcOv$E);
     PReg #(.Width(1)) u_allow_dm$E(clk, Stall$E, Clear$E, AllowExcDm$D, AllowExcDm$E);
     PReg #(.Width(5)) u_exccode$E (clk, Stall$E, Clear$E, ExcCode$D, ExcCode$D$E);
-    PReg #(.Width(1)) u_inst_bd$E (clk, Stall$E, Clear$E, inst_in_bd$D, inst_in_bd$E);
+    PReg #(.Width(1)) u_inst_bd$E (clk, Stall$E, reset || req, inst_in_bd$D, inst_in_bd$E);  // Specilal!!!
     PReg #(.Width(1)) u_eret$E (clk, Stall$E, Clear$E, eret$D, eret$E);
     PReg #(.Width(1)) u_cop0_wr$E (clk, Stall$E, Clear$E, cop0_wr$D, cop0_wr$E);
     PReg #(.Width(1)) u_from_cp0$E (clk, Stall$E, Clear$E, FromCP0$D, FromCP0$E);

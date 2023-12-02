@@ -111,7 +111,7 @@ module mips_tb;
 
 	assign fixed_macroscopic_pc = macroscopic_pc & 32'hfffffffc;
 
-	parameter target_pc = 32'h00003010;
+	parameter target_pc = 32'h00003018;
 
 	integer count;
 
