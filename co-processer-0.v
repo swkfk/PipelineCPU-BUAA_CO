@@ -53,7 +53,7 @@ module CP0(
             end
             else if (We) begin  // mtc0
                 if (A2 == `RegSR)
-                    SR <= DIn;
+                    SR <= DIn & 32'b0000_0000_0000_0000_1111_1100_0000_0011;
                 else
                     SR <= SR;
                 if (A2 == `RegEPC)

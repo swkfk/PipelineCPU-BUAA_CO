@@ -111,7 +111,7 @@ module mips_tb;
 
 	assign fixed_macroscopic_pc = macroscopic_pc & 32'hfffffffc;
 
-	parameter target_pc = 32'h00003018;
+	parameter target_pc = 32'h00003010;
 
 	integer count;
 
@@ -132,7 +132,7 @@ module mips_tb;
 			else if (fixed_macroscopic_pc == target_pc) begin
 				if (count == 0) begin
 					count = 1;
-					interrupt = 1;
+					interrupt = 0;
 				end
 			end
 		end
